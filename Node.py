@@ -1,5 +1,6 @@
 class Node:
-    def __init__(self, x, y):
+    def __init__(self, x, y, idnum):
+        self.idnum = idnum
         self.x = x
         self.y = y
         self._pos = (x, y)
@@ -19,3 +20,8 @@ class Node:
     @pos.setter
     def pos(self, x, y):
         self._pos = (x, y)
+
+    def __repr__(self):
+        selfrep = ("Node ID: " + str(self.idnum) + '\n' +
+                   "Coordinates: " + str(self.pos) + '\n')
+        return selfrep

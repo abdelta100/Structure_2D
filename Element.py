@@ -28,12 +28,23 @@ class Element:
                                      [0, pt3, pt4, 0, -pt3, pt4 / 2],
                                      [-pt1, 0, 0, pt1, 0, 0],
                                      [0, -pt2, -pt3, 0, pt2, -pt3],
-                                     [0, pt3, pt4 / 2, 0, -pt3, pt4], ])
+                                     [0, pt3, pt4 / 2, 0, -pt3, pt4]])
 
         return stiffness_matrix
 
     def elementTransformationMatrix(self):
-        pass
+        theta = np.arctan2(self.j_Node.y, self.i_Node.y, self.j_Node.x-self.i_Node.x)
+        c=np.cos(theta)
+        s=np.sin(theta)
+        #recheck the bottom
+        transformation_matrix=np.array([[c, s, 0, 0, 0, 0],
+                                        [-s, c, 0, 0, 0, 0],
+                                        [0, 0, 1, 0, 0, 0],
+                                        [0, 0, 0, c, s, 0],
+                                        [0, 0, 0, -s, c, 0],
+                                        [0, 0, 0, 0, 0, 1]])
+
+        return transformation_matrix
 
     def addLoad(self, load: Load):
         pass
