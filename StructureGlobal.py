@@ -2,12 +2,14 @@ import numpy as np
 
 from Element import Element
 from Node import Node
+from Support import Support
 
 
 class StructureGlobal:
     def __init__(self):
         self.nodes: list[Node] = []
         self.elements: list[Element] = []
+        self.supports: list[Support] = []
         self.dof = 3
 
     def createGlobalStiffnessMatrix(self):
@@ -26,4 +28,14 @@ class StructureGlobal:
         return globalStiffnessMatrix
 
     def createPermutationMatrix(self):
-        pass
+        #fixity vector
+        disp_vector=np.zeros(shape=(len(self.nodes)*self.dof))
+        for support in self.supports:
+            disp_vector[support.idnum: support.idnum+self.dof]=np.array([support.xActive, support.yActive, support.RxyActive])
+        perm_order=np.argsort(disp_vector)
+        permutation_matrix=np.zeros(shape=(disp_vector.shape[0], disp_vector.shape[0]))
+        for i, j in zip(range(len(disp_vector)), perm_order):
+            permutation_matrix[i, j] = 1
+        return permutation_matrix
+
+

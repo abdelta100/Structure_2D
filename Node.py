@@ -15,11 +15,14 @@ class Node:
 
     @property
     def pos(self):
+        self._pos = (self.x, self.y)
         return self._pos
 
     @pos.setter
-    def pos(self, x, y):
-        self._pos = (x, y)
+    def pos(self, position):
+        self.x = position[0]
+        self.y = position[1]
+        self._pos = position
 
     def __repr__(self):
         selfrep = ("Node ID: " + str(self.idnum) + '\n' +
