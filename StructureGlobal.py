@@ -1,6 +1,7 @@
 import numpy as np
 
 from Element import Element
+from Load import Load
 from Node import Node
 from Support import Support
 
@@ -10,6 +11,7 @@ class StructureGlobal:
         self.nodes: list[Node] = []
         self.elements: list[Element] = []
         self.supports: list[Support] = []
+        self.loads: list[Load] = []
         self.dof = 3
 
     def createGlobalStiffnessMatrix(self):
@@ -36,6 +38,21 @@ class StructureGlobal:
         permutation_matrix=np.zeros(shape=(disp_vector.shape[0], disp_vector.shape[0]))
         for i, j in zip(range(len(disp_vector)), perm_order):
             permutation_matrix[i, j] = 1
-        return permutation_matrix
+        return permutation_matrix, np.matmul(permutation_matrix,disp_vector)
+
+    def solver(self):
+        permutationMatrix, permutatedOrder=self.createPermutationMatrix()
+        globalStiffness=self.createGlobalStiffnessMatrix()
+        permutedMatrix=np.matmul(permutationMatrix, np.matmul(globalStiffness, permutationMatrix.T))
+        fixed_index=np.where(permutatedOrder==1)[0]
+
+        UU = permutedMatrix[:fixed_index, :fixed_index]
+        UK = permutedMatrix[:fixed_index, fixed_index:]
+        KU = permutedMatrix[fixed_index:, :fixed_index]
+        UK = permutedMatrix[fixed_index:, fixed_index:]
+
+
+    def transferLoadstoNodes(self):
+        pass
 
 
