@@ -55,4 +55,7 @@ class StructureGlobal:
     def transferLoadstoNodes(self):
         pass
 
+    def collectNodalLoads(self):
+        pass
+
 

@@ -1,8 +1,9 @@
+import math
 from abc import ABC
 
 
 class Load(ABC):
-    def __init__(self, local=False):
+    def __init__(self, magnitude: float = 0, local=False):
         self.loadClass = "None"
         self.name = "None"
         # TODO implement local and global load application
@@ -30,10 +31,37 @@ class UniformDistributedLoad(Load):
 
 
 class PointLoad(Load):
-    def __init__(self, magnitude, local=False):
+    def __init__(self, magnitude, angle=math.pi, local=False):
         super().__init__()
         self.loadClass = "Point Load"
         self.magnitude = magnitude
+
+    def getComponents(self):
+        selfx = self.magnitude * math.cos(self.angle)
+        selfy = self.magnitude * math.sin(self.angle)
+
+        return selfx, selfy
+
+    def __add__(self, other):
+        if isinstance(other, PointLoad):
+            selfx, selfy= self.getComponents()
+            otherx, othery = other.getComponents()
+
+            combx= selfx+otherx
+            comby= selfy+othery
+
+            combmag=math.sqrt(combx**2 +comby**2)
+            combangle=math.atan2(comby, combx)
+
+            newPointLoad=PointLoad(combmag, angle=combangle)
+
+            return newPointLoad
+        else:
+            #TODO check what exception to throw
+            raise Exception
+        return self
+
+
 
     def calcTotal(self):
         return self.magnitude
@@ -81,6 +109,14 @@ class Moment(Load):
 
     def calcTotal(self):
         return self.magnitude
+
+    def __add__(self, other):
+        if isinstance(other, Moment):
+            return self.magnitude+other.magnitude
+        else:
+            # TODO check what exception to throw
+            raise Exception
+        return self
 
 
 class MomentMember(Moment):
