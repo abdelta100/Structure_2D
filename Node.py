@@ -16,6 +16,8 @@ class Node:
         # self.RxzActive = True
         # TODO implement moment and displacement releases, maybe in the element
         self.nodalLoads: list[Load]=[]
+        self.FEM = [0, 0, 0]
+        self.netLoad=[0, 0, 0]#[Moment, Perp Reaction Force]
 
     @property
     def pos(self):
@@ -36,7 +38,7 @@ class Node:
     def addLoad(self, load: Load):
         self.nodalLoads.append(load)
 
-    def combineLoads(self):
+    def combineTransferredLoads(self):
         combPointLoad=PointLoad(0, 0)
         combMomentLoad = Moment(0)
         for load in self.nodalLoads:
@@ -45,4 +47,16 @@ class Node:
             elif isinstance(load, Moment):
                 combMomentLoad+=load
 
+                #TODO deal with 2 different axes for point loads
+
         return combPointLoad, combMomentLoad
+
+    def combineAllLoads(self):
+        combPointLoad, combMomentLoad=self.combineTransferredLoads()
+        Fx, Fy =combPointLoad.getComponents()
+        Mxy=combMomentLoad
+
+        Fx += self.FEM[0]
+        Fy += self.FEM[1]
+        Mxy += self.FEM[2]
+        self.netLoad=[Fx, Fy, Mxy]

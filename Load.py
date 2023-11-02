@@ -14,6 +14,9 @@ class Load(ABC):
     def calcTotal(self):
         pass
 
+    def calcFixedEndReactions(self):
+        pass
+
 
 class UniformDistributedLoad(Load):
     def __init__(self, magnitude, start_location, end_location):
@@ -22,12 +25,26 @@ class UniformDistributedLoad(Load):
         self.magnitude = magnitude
         self.start = start_location
         self.end = end_location
+        self.beamlength = 1
 
     def calcTotal(self):
         return self.magnitude * (self.end - self.start)
 
     def calcCentroid(self):
-        return self.end - self.start
+        return (self.end + self.start) / 2
+
+    def calcFixedEndReactions(self):
+        dist = (self.end - self.start)
+        mid = self.calcCentroid()
+        length = self.beamlength
+        dN1 = mid
+        dN2 = length - mid
+        R1 = ((2 * dN1 + length) * dN2 ** 2 + ((dN1 - dN2) / 4) / dist ** 2)(self.magnitude * dist) / length ** 3
+        R2 = ((2 * dN2 + length) * dN1 ** 2 - ((dN1 - dN2) / 4) / dist ** 2)(self.magnitude * dist) / length ** 3
+        V1 = -self.magnitude * dist / length ** 2
+        V2 = -self.magnitude * dist / length ** 2
+
+        return (R1, R2), (V1, V2)
 
 
 class PointLoad(Load):
@@ -44,24 +61,22 @@ class PointLoad(Load):
 
     def __add__(self, other):
         if isinstance(other, PointLoad):
-            selfx, selfy= self.getComponents()
+            selfx, selfy = self.getComponents()
             otherx, othery = other.getComponents()
 
-            combx= selfx+otherx
-            comby= selfy+othery
+            combx = selfx + otherx
+            comby = selfy + othery
 
-            combmag=math.sqrt(combx**2 +comby**2)
-            combangle=math.atan2(comby, combx)
+            combmag = math.sqrt(combx ** 2 + comby ** 2)
+            combangle = math.atan2(comby, combx)
 
-            newPointLoad=PointLoad(combmag, angle=combangle)
+            newPointLoad = PointLoad(combmag, angle=combangle)
 
             return newPointLoad
         else:
-            #TODO check what exception to throw
+            # TODO check what exception to throw
             raise Exception
         return self
-
-
 
     def calcTotal(self):
         return self.magnitude
@@ -71,9 +86,22 @@ class PointLoadMember(PointLoad):
     def __init__(self, magnitude, location):
         super().__init__(magnitude)
         self.location = location
+        self.beamLength = 1
 
     def calcCentroid(self):
         self.location
+
+    def calcFixedEndReactions(self):
+        length = self.beamLength
+        dN1 = self.location
+        dN2 = length - dN1
+
+        R1 = (3 * dN1 + dN2) * self.magnitude * dN2 ** 2 / length ** 3
+        R2 = (3 * dN2 + dN1) * self.magnitude * dN1 ** 2 / length ** 3
+        V1 = -self.magnitude * dN1 * dN2 ** 2 / length ** 2
+        V2 = -self.magnitude * dN2 * dN1 ** 2 / length ** 2
+
+        return (R1, R2), (V1, V2)
 
 
 class VaryingDistributedLoad(Load):
@@ -100,6 +128,9 @@ class VaryingDistributedLoad(Load):
         total = (self.end - self.start) * (self.end_magnitude + self.start_magnitude) / 2
         return total
 
+    def calcFixedEndReactions(self):
+        pass
+
 
 class Moment(Load):
     def __init__(self, magnitude):
@@ -112,7 +143,7 @@ class Moment(Load):
 
     def __add__(self, other):
         if isinstance(other, Moment):
-            return self.magnitude+other.magnitude
+            return self.magnitude + other.magnitude
         else:
             # TODO check what exception to throw
             raise Exception

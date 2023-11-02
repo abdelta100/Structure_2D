@@ -51,11 +51,19 @@ class StructureGlobal:
         KU = permutedMatrix[fixed_index:, :fixed_index]
         UK = permutedMatrix[fixed_index:, fixed_index:]
 
+        self.collectNodalLoads()
+        #unordered applied load vector
+        appLoads=np.zeros(shape=len(self.nodes))
+        for node in self.nodes:
+            appLoads[node.idnum:node.idnum+len(node.netLoad)]=node.netLoad
 
     def transferLoadstoNodes(self):
-        pass
+        for element in self.elements:
+            element.calculateFixedEndMoments()
 
     def collectNodalLoads(self):
-        pass
+        for node in self.nodes:
+            node.combineAllLoads()
+
 
 

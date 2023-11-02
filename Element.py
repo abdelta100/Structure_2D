@@ -1,9 +1,12 @@
+import math
+
 import numpy as np
 
 from CrossSection import DefaultRectangularCrossSection, CrossSection
 from Load import Load
 from Material import DefaultMaterial, Material
 from Node import Node
+from AuxillaryFunctions import getComponentsRefBeam
 
 
 class Element:
@@ -18,6 +21,8 @@ class Element:
         self.A = self.crossSection.area
         self.stiffnessMatrix = self.elementStiffnessMatrix()
         self.loads: list[Load] = []
+        self.node1FEM: list[float] = [0, 0]
+        self.node2FEM: list[float] = [0, 0]
 
     def elementStiffnessMatrix(self):
         # Partial Term 1: EA/L
@@ -62,4 +67,30 @@ class Element:
         pass
 
     def calculateFixedEndMoments(self):
-        pass
+        ER1=0
+        ER2=0
+        EV1=0
+        EV2=0
+        for load in self.loads:
+            tR1, tR2, tV1, tV2 = load.calcFixedEndReactions()
+            ER1 += tR1
+            ER2 += tR2
+            EV2 += tV1
+            EV2 += tV2
+
+        self.node1FEM = [ER1, EV1]
+        self.node2FEM = [ER2, EV2]
+
+        EV1x, EV1y = getComponentsRefBeam(self.getAngle(), EV1)
+        EV2x, EV2y = getComponentsRefBeam(self.getAngle(), EV2)
+
+        self.i_Node.FEM[0] += EV1x
+        self.i_Node.FEM[1] += EV1x
+        self.i_Node.FEM[2] += ER1
+        self.j_Node.FEM[0] += EV2x
+        self.j_Node.FEM[1] += EV2y
+        self.j_Node.FEM[1] += ER2
+
+    def getAngle(self):
+        angle = math.atan2(self.j_Node.y-self.i_Node.y, self.j_Node.x-self.i_Node.x)
+        return angle
