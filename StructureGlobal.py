@@ -21,10 +21,10 @@ class StructureGlobal:
         for element in self.elements:
             i_node = element.i_Node.idnum
             j_node = element.i_Node.idnum
-            for index, i in enumerate(i_node, j_node):
-                for index2, j in enumerate(i_node, j_node):
+            for index, i in enumerate((i_node, j_node)):
+                for index2, j in enumerate((i_node, j_node)):
                     globalStiffnessMatrix[i * self.dof:(i + 1) * self.dof,
-                    j * self.dof:(j + 1) * self.dof] += element.transformedMatrix[
+                    j * self.dof:(j + 1) * self.dof] += element.globalStiffnessMatrix[
                                                         index * self.dof:(index + 1) * self.dof,
                                                         index2 * self.dof:(index2 + 1) * self.dof]
         return globalStiffnessMatrix

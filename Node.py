@@ -3,10 +3,10 @@ from Load import Load, PointLoad, Moment
 
 class Node:
     def __init__(self, x, y, idnum):
-        self.idnum = idnum
-        self.x = x
-        self.y = y
-        self._pos = (x, y)
+        self.idnum: int = idnum
+        self.x: float = x
+        self.y: float = y
+        self._pos: tuple[float, float] = (x, y)
         # float for releases is proxy for stiffness. Maybe Check
         self.xActive: float = 1
         self.yActive: float = 1
@@ -15,9 +15,9 @@ class Node:
         # self.RyzActive = True
         # self.RxzActive = True
         # TODO implement moment and displacement releases, maybe in the element
-        self.nodalLoads: list[Load]=[]
-        self.FEM = [0, 0, 0]
-        self.netLoad=[0, 0, 0]#[Moment, Perp Reaction Force]
+        self.nodalLoads: list[Load] = []
+        self.FEM: list[float] = [0, 0, 0]
+        self.netLoad: list[float] = [0, 0, 0]  # [Moment, Perp Reaction Force]
 
     @property
     def pos(self):
@@ -39,24 +39,24 @@ class Node:
         self.nodalLoads.append(load)
 
     def combineTransferredLoads(self):
-        combPointLoad=PointLoad(0, 0)
+        combPointLoad = PointLoad(0, 0)
         combMomentLoad = Moment(0)
         for load in self.nodalLoads:
             if isinstance(load, PointLoad):
-                combPointLoad+=load
+                combPointLoad += load
             elif isinstance(load, Moment):
-                combMomentLoad+=load
+                combMomentLoad += load
 
-                #TODO deal with 2 different axes for point loads
+                # TODO deal with 2 different axes for point loads
 
         return combPointLoad, combMomentLoad
 
     def combineAllLoads(self):
-        combPointLoad, combMomentLoad=self.combineTransferredLoads()
-        Fx, Fy =combPointLoad.getComponents()
-        Mxy=combMomentLoad
+        combPointLoad, combMomentLoad = self.combineTransferredLoads()
+        Fx, Fy = combPointLoad.getComponents()
+        Mxy = combMomentLoad
 
         Fx += self.FEM[0]
         Fy += self.FEM[1]
         Mxy += self.FEM[2]
-        self.netLoad=[Fx, Fy, Mxy]
+        self.netLoad = [Fx, Fy, Mxy]

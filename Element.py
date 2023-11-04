@@ -2,27 +2,31 @@ import math
 
 import numpy as np
 
+from AuxillaryFunctions import getComponentsRefBeam
 from CrossSection import DefaultRectangularCrossSection, CrossSection
 from Load import Load
 from Material import DefaultMaterial, Material
 from Node import Node
-from AuxillaryFunctions import getComponentsRefBeam
 
 
 class Element:
     def __init__(self):
-        self.i_Node: Node = None
-        self.j_Node: Node = None
+        self.i_Node: Node | None = None
+        self.j_Node: Node | None = None
         self.length: float = 0
         self.material: Material = DefaultMaterial()
         self.crossSection: CrossSection = DefaultRectangularCrossSection()
-        self.E = self.material.elasticModulus
-        self.I = self.crossSection.momentOfInertia
-        self.A = self.crossSection.area
-        self.stiffnessMatrix = self.elementStiffnessMatrix()
+        self.E: float = self.material.elasticModulus
+        self.I: float = self.crossSection.momentOfInertia
+        self.A: float = self.crossSection.area
+        self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
         self.loads: list[Load] = []
         self.node1FEM: list[float] = [0, 0]
         self.node2FEM: list[float] = [0, 0]
+        #TODO add initilaization for transformed matrix and transformation matrices
+        #TODO add functions for recalculation of matrices
+        self.transformationMatrix: np.ndarray = self.elementTransformationMatrix()
+        self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
 
     def elementStiffnessMatrix(self):
         # Partial Term 1: EA/L
@@ -60,17 +64,16 @@ class Element:
 
     def addLoad(self, load: Load):
         self.loads.append(load)
-        #TODO needs work to define order of precedence. Add load first or select member first?
-
+        # TODO needs work to define order of precedence. Add load first or select member first?
 
     def addLoadInteractive(self):
         pass
 
     def calculateFixedEndMoments(self):
-        ER1=0
-        ER2=0
-        EV1=0
-        EV2=0
+        ER1 = 0
+        ER2 = 0
+        EV1 = 0
+        EV2 = 0
         for load in self.loads:
             tR1, tR2, tV1, tV2 = load.calcFixedEndReactions()
             ER1 += tR1
@@ -92,5 +95,14 @@ class Element:
         self.j_Node.FEM[1] += ER2
 
     def getAngle(self):
-        angle = math.atan2(self.j_Node.y-self.i_Node.y, self.j_Node.x-self.i_Node.x)
+        angle = math.atan2(self.j_Node.y - self.i_Node.y, self.j_Node.x - self.i_Node.x)
         return angle
+
+    def recalculateMatrices(self) -> None:
+        self.localStiffnessMatrix = self.elementStiffnessMatrix()
+        self.transformationMatrix=self.elementTransformationMatrix()
+        self.globalStiffnessMatrix=self.local2globalStiffness()
+
+    def local2globalStiffness(self):
+        globalStiffnessMatrix= np.matmul(self.transformationMatrix, np.matmul(self.localStiffnessMatrix, self.transformationMatrix.T))
+        return globalStiffnessMatrix

@@ -4,17 +4,17 @@ from abc import ABC
 
 class Load(ABC):
     def __init__(self, magnitude: float = 0, local=False):
-        self.loadClass = "None"
-        self.name = "None"
+        self.loadClass: str = "None"
+        self.name: str = "None"
         # TODO implement local and global load application
 
-    def calcCentroid(self):
+    def calcCentroid(self) -> float:
         pass
 
-    def calcTotal(self):
+    def calcTotal(self) -> float:
         pass
 
-    def calcFixedEndReactions(self):
+    def calcFixedEndReactions(self) -> list[float]:
         pass
 
 
@@ -52,6 +52,7 @@ class PointLoad(Load):
         super().__init__()
         self.loadClass = "Point Load"
         self.magnitude = magnitude
+        self.angle: float = angle
 
     def getComponents(self):
         selfx = self.magnitude * math.cos(self.angle)
@@ -75,8 +76,8 @@ class PointLoad(Load):
             return newPointLoad
         else:
             # TODO check what exception to throw
-            raise Exception
-        return self
+            # raise Exception
+            return self
 
     def calcTotal(self):
         return self.magnitude
@@ -89,7 +90,7 @@ class PointLoadMember(PointLoad):
         self.beamLength = 1
 
     def calcCentroid(self):
-        self.location
+        return self.location
 
     def calcFixedEndReactions(self):
         length = self.beamLength
@@ -123,18 +124,20 @@ class VaryingDistributedLoad(Load):
         tri_weight = (1 / 2) * dist * (self.end_magnitude - self.start_magnitude)
 
         centr = (rect_centr * rect_weight + tri_centr * tri_weight) / self.calcTotal()
+        return centr
 
     def calcTotal(self):
         total = (self.end - self.start) * (self.end_magnitude + self.start_magnitude) / 2
         return total
 
     def calcFixedEndReactions(self):
+        # TODO either find complete formula, or restrict case to start at 0 and end at L
         pass
 
 
 class Moment(Load):
     def __init__(self, magnitude):
-        super.__init__()
+        super().__init__(magnitude)
         self.loadClass = "Moment"
         self.magnitude = magnitude
 
@@ -146,11 +149,12 @@ class Moment(Load):
             return self.magnitude + other.magnitude
         else:
             # TODO check what exception to throw
-            raise Exception
-        return self
+            # raise Exception
+            return self
 
 
 class MomentMember(Moment):
+    # TODO figure moment fem transfer in case moment is not at node
     def __init__(self, magnitude, location):
         super().__init__(magnitude)
         self.location = location

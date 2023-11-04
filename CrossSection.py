@@ -3,14 +3,14 @@ from abc import ABC
 
 class CrossSection(ABC):
     def __init__(self):
-        self.name = "None"
-        self.momentOfInertia = self.calcMomentofInertia()
-        self.area = self.calcSectionArea()
+        self.name: str = "None"
+        self.momentOfInertia: float = self.calcMomentofInertia()
+        self.area: float = self.calcSectionArea()
 
-    def calcMomentofInertia(self):
+    def calcMomentofInertia(self) -> float:
         return 0
 
-    def calcSectionArea(self):
+    def calcSectionArea(self) -> float:
         return 0
 
 
@@ -18,10 +18,10 @@ class RectangularCrossSection(CrossSection):
     def __init__(self, width, height):
         super().__init__()
         self.name = "Rectangle"
-        self.width = width
-        self.height = height
+        self.width: float = width
+        self.height: float = height
         self.momentOfInertia = self.calcMomentofInertia()
-        self.area=self.calcSectionArea()
+        self.area = self.calcSectionArea()
 
     def calcMomentofInertia(self):
         I = (self.width * self.height ** 3) / 12
