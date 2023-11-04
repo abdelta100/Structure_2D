@@ -25,7 +25,7 @@ class UniformDistributedLoad(Load):
         self.magnitude = magnitude
         self.start = start_location
         self.end = end_location
-        self.beamlength = 1
+        self.beamlength: float = 1
 
     def calcTotal(self):
         return self.magnitude * (self.end - self.start)

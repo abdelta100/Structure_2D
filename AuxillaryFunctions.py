@@ -2,6 +2,6 @@ import math
 
 
 def getComponentsRefBeam(theta, vector):
-    Vx = math.sin(vector)
-    Vy= math.cos(vector)
-    pass
+    Vx = vector * math.sin(theta)
+    Vy = vector * math.cos(theta)
+    return Vx, Vy
