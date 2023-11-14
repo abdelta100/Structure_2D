@@ -12,10 +12,12 @@ class StructureGlobal:
         self.elements: list[Element] = []
         self.supports: list[Support] = []
         self.loads: list[Load] = []
+        self.stiffnessMatrix: np.array = np.zeros(shape=(len(self.nodes) * 3, len(self.nodes) * 3))
         self.dof = 3
 
     def createGlobalStiffnessMatrix(self):
         # TODO implement Global Stiffness Matrix
+        # TODO guves an error, all entries are null for some reason
         # transformedElementMatrices=[element.transformedMatrix for element in self.elements]
         globalStiffnessMatrix = np.zeros(shape=(len(self.nodes) * 3, len(self.nodes) * 3))
         for element in self.elements:
@@ -72,15 +74,17 @@ class StructureGlobal:
 
         # FK = UU*DU + UK * DK
         # DK zero by definition (not specific case yet where spring deformation)
-        # DU = FK * UU.inv
+        # DU = (FK - UK*DK) * UU.inv
         # FU = KU*DU + KK * DK
 
-        DU = np.matmul(FK, np.linalg.inv(UU))
+        DU = np.matmul(FK-np.matmul(UK, DK), np.linalg.inv(UU))
         FU = np.matmul(KU, DU) + np.matmul(KK, DK)
 
         filledDisplacementVector=np.concatenate((DU, DK), axis=1)
         filledForceVector=np.concatenate((FK, FU), axis=1)
 
+        self.pushDisplacements(filledDisplacementVector, permutationMatrix)
+        self.pushReactions(filledForceVector, permutationMatrix)
 
 
         #TODO involve displacement vector
@@ -105,6 +109,23 @@ class StructureGlobal:
 
         orderedLoads=np.matmul(appLoads, permutationMatrix)
         return orderedLoads
+
+    def pushDisplacements(self, orderedDispVector, permutationMatrix):
+        origOrderDisplacement=np.matmul(orderedDispVector, np.linalg.inv(permutationMatrix))
+        for node in self.nodes:
+            tempdisp=origOrderDisplacement[node.idnum:node.idnum+self.dof]
+            node.disp["Dx"]=tempdisp[0]
+            node.disp["Dy"] = tempdisp[1]
+            node.disp["Rxy"] = tempdisp[2]
+
+    def pushReactions(self, orderedForceVector, permutationMatrix):
+        origOrderForce = np.matmul(orderedForceVector, np.linalg.inv(permutationMatrix))
+        for support in self.supports:
+            tempforce = origOrderForce[support.idnum:support.idnum+self.dof]
+            support.reactions["Fx"] = tempforce[0]
+            support.reactions["Fy"] = tempforce[1]
+            support.reactions["Mxy"] = tempforce[2]
+
 
 
 

@@ -6,6 +6,7 @@ class Load(ABC):
     def __init__(self, magnitude: float = 0, local=False):
         self.loadClass: str = "None"
         self.name: str = "None"
+        self.beamLength: float = 1
         # TODO implement local and global load application
 
     def calcCentroid(self) -> float:
@@ -17,6 +18,14 @@ class Load(ABC):
     def calcFixedEndReactions(self) -> list[float]:
         pass
 
+    def cleanInputs(self):
+        #TODO deal with either repeating code or adding unknown variables
+        if self.start < 0: self.start = 0
+        if self.start > self.beamLength: self.start = self.beamLength
+        if self.end > self.beamLength: self.end = self.beamLength
+        if self.end < 0: self.end = 0
+        if self.start > self.end: self.end = self.start
+
 
 class UniformDistributedLoad(Load):
     def __init__(self, magnitude, start_location, end_location):
@@ -25,7 +34,7 @@ class UniformDistributedLoad(Load):
         self.magnitude = magnitude
         self.start = start_location
         self.end = end_location
-        self.beamlength: float = 1
+        self.beamLength = 1
 
     def calcTotal(self):
         return self.magnitude * (self.end - self.start)
@@ -36,7 +45,7 @@ class UniformDistributedLoad(Load):
     def calcFixedEndReactions(self):
         dist = (self.end - self.start)
         mid = self.calcCentroid()
-        length = self.beamlength
+        length = self.beamLength
         dN1 = mid
         dN2 = length - mid
         R1 = ((2 * dN1 + length) * dN2 ** 2 + ((dN1 - dN2) / 4) / dist ** 2)(self.magnitude * dist) / length ** 3

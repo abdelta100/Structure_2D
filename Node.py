@@ -18,6 +18,7 @@ class Node:
         self.nodalLoads: list[Load] = []
         self.FEM: list[float] = [0, 0, 0]
         self.netLoad: list[float] = [0, 0, 0]  # [Moment, Perp Reaction Force]
+        self.disp: dict = {"Dx":0, "Dy":0, "Rxy":0}
 
     @property
     def pos(self):

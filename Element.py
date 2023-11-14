@@ -1,19 +1,20 @@
 import math
+from scipy.spatial.distance import euclidean
 
 import numpy as np
 
 from AuxillaryFunctions import getComponentsRefBeam
 from CrossSection import DefaultRectangularCrossSection, CrossSection
-from Load import Load
+from Load import Load, UniformDistributedLoad, VaryingDistributedLoad
 from Material import DefaultMaterial, Material
 from Node import Node
 
 
 class Element:
-    def __init__(self):
-        self.i_Node: Node | None = None
-        self.j_Node: Node | None = None
-        self.length: float = 0
+    def __init__(self, i: Node, j: Node):
+        self.i_Node: Node | None = i
+        self.j_Node: Node | None = j
+        self.length: float = euclidean(self.i_Node.pos, self.j_Node.pos)
         self.material: Material = DefaultMaterial()
         self.crossSection: CrossSection = DefaultRectangularCrossSection()
         self.E: float = self.material.elasticModulus
@@ -21,6 +22,7 @@ class Element:
         self.A: float = self.crossSection.area
         self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
         self.loads: list[Load] = []
+        #TODO adds x or axial comp in nodeFEM
         self.node1FEM: list[float] = [0, 0]
         self.node2FEM: list[float] = [0, 0]
         #TODO add initilaization for transformed matrix and transformation matrices
@@ -49,7 +51,7 @@ class Element:
         return stiffness_matrix
 
     def elementTransformationMatrix(self):
-        theta = np.arctan2(self.j_Node.y, self.i_Node.y, self.j_Node.x - self.i_Node.x)
+        theta = np.arctan2(self.j_Node.y- self.i_Node.y, self.j_Node.x - self.i_Node.x)
         c = np.cos(theta)
         s = np.sin(theta)
         # recheck the bottom
@@ -106,3 +108,9 @@ class Element:
     def local2globalStiffness(self):
         globalStiffnessMatrix= np.matmul(self.transformationMatrix, np.matmul(self.localStiffnessMatrix, self.transformationMatrix.T))
         return globalStiffnessMatrix
+
+    def addLoad(self, load:Load):
+        load.beamLength = self.length
+        if isinstance(load, UniformDistributedLoad) or isinstance(load, VaryingDistributedLoad):
+            load.cleanInputs()
+        self.loads.append(load)

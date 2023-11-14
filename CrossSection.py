@@ -4,8 +4,8 @@ from abc import ABC
 class CrossSection(ABC):
     def __init__(self):
         self.name: str = "None"
-        self.momentOfInertia: float = self.calcMomentofInertia()
-        self.area: float = self.calcSectionArea()
+        #self.momentOfInertia: float = self.calcMomentofInertia()
+        #self.area: float = self.calcSectionArea()
 
     def calcMomentofInertia(self) -> float:
         return 0
