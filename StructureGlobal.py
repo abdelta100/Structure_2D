@@ -22,13 +22,13 @@ class StructureGlobal:
         globalStiffnessMatrix = np.zeros(shape=(len(self.nodes) * 3, len(self.nodes) * 3))
         for element in self.elements:
             i_node = element.i_Node.idnum
-            j_node = element.i_Node.idnum
+            j_node = element.j_Node.idnum
             for index, i in enumerate((i_node, j_node)):
                 for index2, j in enumerate((i_node, j_node)):
-                    globalStiffnessMatrix[i * self.dof:(i + 1) * self.dof,
-                    j * self.dof:(j + 1) * self.dof] += element.globalStiffnessMatrix[
+                    globalStiffnessMatrix[i * self.dof:(i + 1) * self.dof, j * self.dof:(j + 1) * self.dof] += element.globalStiffnessMatrix[
                                                         index * self.dof:(index + 1) * self.dof,
                                                         index2 * self.dof:(index2 + 1) * self.dof]
+        #TODO provide option to return just the stiffness witout running the solver, or maybe a model build?
         return globalStiffnessMatrix
 
     def createPermutationMatrix(self):
@@ -36,7 +36,7 @@ class StructureGlobal:
         disp_vector=np.zeros(shape=(len(self.nodes)*self.dof))
         for support in self.supports:
             #edit Line when going 3D
-            disp_vector[support.idnum: support.idnum+self.dof]=np.array([support.xActive, support.yActive, support.RxyActive])
+            disp_vector[support.idnum*self.dof: (support.idnum+1)*self.dof]=np.array([support.xActive, support.yActive, support.RxyActive])
         perm_order=np.argsort(disp_vector)
         permutation_matrix=np.zeros(shape=(disp_vector.shape[0], disp_vector.shape[0]))
         for i, j in zip(range(len(disp_vector)), perm_order):
@@ -48,7 +48,7 @@ class StructureGlobal:
         permutationMatrix, permutatedOrder=self.createPermutationMatrix()
         globalStiffness=self.createGlobalStiffnessMatrix()
         permutedMatrix=np.matmul(permutationMatrix, np.matmul(globalStiffness, permutationMatrix.T))
-        fixed_index=np.where(permutatedOrder==1)[0]
+        fixed_index=np.where(permutatedOrder==1)[0][0]
 
         # | UU      UK |
         # | KU      KK |
@@ -60,6 +60,8 @@ class StructureGlobal:
 
         # | FK |
         # | FU |
+
+        #TODO work out what index works here, current config gives FU as known instead of FK
 
         permutatedAppliedLoads=self.orderAppliedLoads(permutationMatrix)
         FK=permutatedAppliedLoads[:fixed_index]
@@ -80,8 +82,8 @@ class StructureGlobal:
         DU = np.matmul(FK-np.matmul(UK, DK), np.linalg.inv(UU))
         FU = np.matmul(KU, DU) + np.matmul(KK, DK)
 
-        filledDisplacementVector=np.concatenate((DU, DK), axis=1)
-        filledForceVector=np.concatenate((FK, FU), axis=1)
+        filledDisplacementVector=np.concatenate((DU, DK), axis=0)
+        filledForceVector=np.concatenate((FK, FU), axis=0)
 
         self.pushDisplacements(filledDisplacementVector, permutationMatrix)
         self.pushReactions(filledForceVector, permutationMatrix)
@@ -103,9 +105,11 @@ class StructureGlobal:
         self.transferLoadstoNodes()
         self.collectNodalLoads()
         # unordered applied load vector
-        appLoads = np.zeros(shape=len(self.nodes))
+        appLoads = np.zeros(shape=len(self.nodes)*3)
         for node in self.nodes:
-            appLoads[node.idnum:node.idnum + len(node.netLoad)] = node.netLoad
+            # TODO reconcile self.dof and len netload,
+            #both should be same but different variables are referenced may cause issue
+            appLoads[node.idnum*self.dof:node.idnum*self.dof + len(node.netLoad)] = node.netLoad
 
         orderedLoads=np.matmul(appLoads, permutationMatrix)
         return orderedLoads
@@ -113,7 +117,7 @@ class StructureGlobal:
     def pushDisplacements(self, orderedDispVector, permutationMatrix):
         origOrderDisplacement=np.matmul(orderedDispVector, np.linalg.inv(permutationMatrix))
         for node in self.nodes:
-            tempdisp=origOrderDisplacement[node.idnum:node.idnum+self.dof]
+            tempdisp=origOrderDisplacement[node.idnum*self.dof:(node.idnum+1)*self.dof]
             node.disp["Dx"]=tempdisp[0]
             node.disp["Dy"] = tempdisp[1]
             node.disp["Rxy"] = tempdisp[2]

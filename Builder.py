@@ -1,4 +1,5 @@
 from Element import Element
+from Load import *
 from Node import Node
 from StructureGlobal import StructureGlobal
 from Support import Support
@@ -19,12 +20,17 @@ elements.append(Element(nodes[2], nodes[3]))
 
 supports: list[Support] = []
 supports.append(Support.init_from_node(nodes[0], 0))
-supports.append(Support.init_from_node(nodes[3], 0))
+#supports.append(Support.init_from_node(nodes[3], 1))
 
 structure: StructureGlobal = StructureGlobal()
 structure.nodes = nodes
 structure.elements = elements
 structure.supports = supports
 
-structure.createGlobalStiffnessMatrix()
-print(structure.stiffnessMatrix)
+loads:list[Load]=[]
+loads.append(PointLoad(20, 0))
+nodes[1].addLoad(loads[0])
+
+#structure.createGlobalStiffnessMatrix()
+#print(structure.stiffnessMatrix)
+structure.solver()

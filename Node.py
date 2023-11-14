@@ -55,9 +55,10 @@ class Node:
     def combineAllLoads(self):
         combPointLoad, combMomentLoad = self.combineTransferredLoads()
         Fx, Fy = combPointLoad.getComponents()
-        Mxy = combMomentLoad
+        Mxy = combMomentLoad.magnitude
 
         Fx += self.FEM[0]
         Fy += self.FEM[1]
         Mxy += self.FEM[2]
+        #TODO check if the following line should contain load objects or just magnitude
         self.netLoad = [Fx, Fy, Mxy]
