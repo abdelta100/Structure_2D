@@ -34,3 +34,8 @@ class RectangularCrossSection(CrossSection):
 class DefaultRectangularCrossSection(RectangularCrossSection):
     def __init__(self, width=1, height=3):
         super().__init__(width, height)
+
+class TestRectangularCrossSection(RectangularCrossSection):
+    def __init__(self, A, I):
+        self.area=A
+        self.momentOfInertia=I

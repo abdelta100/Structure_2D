@@ -38,3 +38,8 @@ class DefaultMaterial(Material):
         self.compressiveStrength = 3000
         self.elasticModulus = 2700000
         self.poissonRatio = 0.33
+
+class TestMaterial(DefaultMaterial):
+    def __init__(self, E):
+        super().__init__()
+        self.elasticModulus=E

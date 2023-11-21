@@ -5,7 +5,7 @@ import numpy as np
 
 from AuxillaryFunctions import getComponentsRefBeam
 from CrossSection import DefaultRectangularCrossSection, CrossSection
-from Load import Load, UniformDistributedLoad, VaryingDistributedLoad
+from Load import Load, UniformDistributedLoad, VaryingDistributedLoad, PointLoadMember
 from Material import DefaultMaterial, Material
 from Node import Node
 
@@ -66,6 +66,9 @@ class Element:
 
     def addLoad(self, load: Load):
         self.loads.append(load)
+        load.beamLength=self.length
+        if isinstance(load, PointLoadMember):
+            load.location=load.location=load.beamLength
         # TODO needs work to define order of precedence. Add load first or select member first?
 
     def addLoadInteractive(self):
@@ -114,3 +117,13 @@ class Element:
         if isinstance(load, UniformDistributedLoad) or isinstance(load, VaryingDistributedLoad):
             load.cleanInputs()
         self.loads.append(load)
+
+    def setMaterial(self, material: Material):
+        self.material=material
+        self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
+        self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
+
+    def setCrossSection(self, section: CrossSection):
+        self.crossSection=section
+        self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
+        self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()

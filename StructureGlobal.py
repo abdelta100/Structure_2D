@@ -128,7 +128,7 @@ class StructureGlobal:
         #TODO figure out force/reaction push details since i'm not pushing anything to nodes here, just supports
         origOrderForce = np.matmul(np.linalg.inv(permutationMatrix), orderedForceVector)
         for support in self.supports:
-            tempforce = origOrderForce[support.idnum:support.idnum+self.dof]
+            tempforce = origOrderForce[support.idnum*self.dof:(support.idnum+1)*self.dof]
             support.reactions["Fx"] = tempforce[0]
             support.reactions["Fy"] = tempforce[1]
             support.reactions["Mxy"] = tempforce[2]

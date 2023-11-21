@@ -1,5 +1,6 @@
 import math
 from abc import ABC
+from AuxillaryFunctions import *
 
 
 class Load(ABC):
@@ -62,7 +63,7 @@ class PointLoad(Load):
         self.loadClass = "Point Load"
         self.magnitude = magnitude
         #TODO implement rad to degree?
-        self.angle: float = math.pi*(angle_degree/180)
+        self.angle: float = degree2rad(angle_degree)
 
     def getComponents(self):
         selfx = self.magnitude * math.cos(self.angle)
@@ -81,7 +82,7 @@ class PointLoad(Load):
             combmag = math.sqrt(combx ** 2 + comby ** 2)
             combangle = math.atan2(comby, combx)
 
-            newPointLoad = PointLoad(combmag, angle_degree=combangle)
+            newPointLoad = PointLoad(combmag, angle_degree=rad2degree(combangle))
 
             return newPointLoad
         else:
@@ -97,12 +98,14 @@ class PointLoadMember(PointLoad):
     def __init__(self, magnitude, location):
         super().__init__(magnitude)
         self.location = location
-        self.beamLength = 1
+        #TODO jugar fix this
+        self.beamLength = 10
 
     def calcCentroid(self):
         return self.location
 
     def calcFixedEndReactions(self):
+        #TODO amend for axial force too
         length = self.beamLength
         dN1 = self.location
         dN2 = length - dN1
@@ -112,7 +115,7 @@ class PointLoadMember(PointLoad):
         V1 = -self.magnitude * dN1 * dN2 ** 2 / length ** 2
         V2 = -self.magnitude * dN2 * dN1 ** 2 / length ** 2
 
-        return (R1, R2), (V1, V2)
+        return R1, R2, V1, V2
 
 
 class VaryingDistributedLoad(Load):
