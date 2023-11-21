@@ -44,6 +44,7 @@ class StructureGlobal:
         return permutation_matrix, np.matmul(permutation_matrix,disp_vector)
 
     def solver(self):
+        #TODO handle single beam edge case or similar
         #TODO permutation matrix needs to be created by factoring in Supports not just nodes
         permutationMatrix, permutatedOrder=self.createPermutationMatrix()
         globalStiffness=self.createGlobalStiffnessMatrix()
@@ -70,6 +71,7 @@ class StructureGlobal:
         # | DU |
         # | DK |
 
+        #TODO Use actual displacement case here instead of assuming zero
         orderedDisplacementVector=np.zeros(shape=permutatedAppliedLoads.shape)
         DU = orderedDisplacementVector[:fixed_index]
         DK = orderedDisplacementVector[fixed_index:]
@@ -111,11 +113,11 @@ class StructureGlobal:
             #both should be same but different variables are referenced may cause issue
             appLoads[node.idnum*self.dof:node.idnum*self.dof + len(node.netLoad)] = node.netLoad
 
-        orderedLoads=np.matmul(appLoads, permutationMatrix)
+        orderedLoads=np.matmul(permutationMatrix, appLoads)
         return orderedLoads
 
     def pushDisplacements(self, orderedDispVector, permutationMatrix):
-        origOrderDisplacement=np.matmul(orderedDispVector, np.linalg.inv(permutationMatrix))
+        origOrderDisplacement=np.matmul(np.linalg.inv(permutationMatrix), orderedDispVector)
         for node in self.nodes:
             tempdisp=origOrderDisplacement[node.idnum*self.dof:(node.idnum+1)*self.dof]
             node.disp["Dx"]=tempdisp[0]
@@ -123,7 +125,8 @@ class StructureGlobal:
             node.disp["Rxy"] = tempdisp[2]
 
     def pushReactions(self, orderedForceVector, permutationMatrix):
-        origOrderForce = np.matmul(orderedForceVector, np.linalg.inv(permutationMatrix))
+        #TODO figure out force/reaction push details since i'm not pushing anything to nodes here, just supports
+        origOrderForce = np.matmul(np.linalg.inv(permutationMatrix), orderedForceVector)
         for support in self.supports:
             tempforce = origOrderForce[support.idnum:support.idnum+self.dof]
             support.reactions["Fx"] = tempforce[0]

@@ -20,6 +20,7 @@ elements.append(Element(nodes[2], nodes[3]))
 
 supports: list[Support] = []
 supports.append(Support.init_from_node(nodes[0], 0))
+supports.append(Support.init_from_node(nodes[3], 1))
 #supports.append(Support.init_from_node(nodes[3], 1))
 
 structure: StructureGlobal = StructureGlobal()
@@ -28,9 +29,14 @@ structure.elements = elements
 structure.supports = supports
 
 loads:list[Load]=[]
-loads.append(PointLoad(20, 0))
+loads.append(PointLoad(40, 270))
 nodes[1].addLoad(loads[0])
 
 #structure.createGlobalStiffnessMatrix()
 #print(structure.stiffnessMatrix)
 structure.solver()
+print(nodes[0].disp)
+print(nodes[3].disp)
+print(nodes[1].netLoad)
+print(supports[0].reactions)
+print(supports[1].reactions)

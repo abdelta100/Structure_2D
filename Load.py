@@ -57,11 +57,12 @@ class UniformDistributedLoad(Load):
 
 
 class PointLoad(Load):
-    def __init__(self, magnitude, angle=math.pi, local=False):
+    def __init__(self, magnitude, angle_degree=0, local=False):
         super().__init__()
         self.loadClass = "Point Load"
         self.magnitude = magnitude
-        self.angle: float = angle
+        #TODO implement rad to degree?
+        self.angle: float = math.pi*(angle_degree/180)
 
     def getComponents(self):
         selfx = self.magnitude * math.cos(self.angle)
@@ -80,7 +81,7 @@ class PointLoad(Load):
             combmag = math.sqrt(combx ** 2 + comby ** 2)
             combangle = math.atan2(comby, combx)
 
-            newPointLoad = PointLoad(combmag, angle=combangle)
+            newPointLoad = PointLoad(combmag, angle_degree=combangle)
 
             return newPointLoad
         else:

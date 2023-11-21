@@ -61,4 +61,5 @@ class Node:
         Fy += self.FEM[1]
         Mxy += self.FEM[2]
         #TODO check if the following line should contain load objects or just magnitude
+        #TODO also see if i should use a dict object here or not
         self.netLoad = [Fx, Fy, Mxy]
