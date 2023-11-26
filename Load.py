@@ -66,8 +66,17 @@ class PointLoad(Load):
         self.angle: float = degree2rad(angle_degree)
 
     def getComponents(self):
-        selfx = self.magnitude * math.cos(self.angle)
-        selfy = self.magnitude * math.sin(self.angle)
+        c = math.cos(self.angle)
+        s = math.sin(self.angle)
+
+        # TODO added to manually force zeros
+        zerolim = 10E-9
+        if -zerolim < c < zerolim:
+            c = 0
+        if -zerolim < s < zerolim:
+            s = 0
+        selfx = self.magnitude * c
+        selfy = self.magnitude * s
 
         return selfx, selfy
 

@@ -39,3 +39,9 @@ class TestRectangularCrossSection(RectangularCrossSection):
     def __init__(self, A, I):
         self.area=A
         self.momentOfInertia=I
+
+    def calcSectionArea(self):
+        return self.area
+
+    def calcMomentofInertia(self):
+        return self.momentOfInertia

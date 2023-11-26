@@ -1,5 +1,6 @@
 import numpy as np
 
+from AuxillaryFunctions import matrixStabilityCheck
 from Element import Element
 from Load import Load
 from Node import Node
@@ -19,7 +20,7 @@ class StructureGlobal:
         # TODO implement Global Stiffness Matrix
         # TODO guves an error, all entries are null for some reason
         # transformedElementMatrices=[element.transformedMatrix for element in self.elements]
-        globalStiffnessMatrix = np.zeros(shape=(len(self.nodes) * 3, len(self.nodes) * 3))
+        globalStiffnessMatrix = np.zeros(shape=(len(self.nodes) * 3, len(self.nodes) * 3), dtype=np.float64)
         for element in self.elements:
             i_node = element.i_Node.idnum
             j_node = element.j_Node.idnum
@@ -29,6 +30,7 @@ class StructureGlobal:
                                                         index * self.dof:(index + 1) * self.dof,
                                                         index2 * self.dof:(index2 + 1) * self.dof]
         #TODO provide option to return just the stiffness witout running the solver, or maybe a model build?
+        self.stiffnessMatrix=globalStiffnessMatrix
         return globalStiffnessMatrix
 
     def createPermutationMatrix(self):
@@ -48,6 +50,8 @@ class StructureGlobal:
         #TODO permutation matrix needs to be created by factoring in Supports not just nodes
         permutationMatrix, permutatedOrder=self.createPermutationMatrix()
         globalStiffness=self.createGlobalStiffnessMatrix()
+        globalStiffness=matrixStabilityCheck(globalStiffness)
+        self.stiffnessMatrix=globalStiffness
         permutedMatrix=np.matmul(permutationMatrix, np.matmul(globalStiffness, permutationMatrix.T))
         fixed_index=np.where(permutatedOrder==1)[0][0]
 
@@ -81,7 +85,8 @@ class StructureGlobal:
         # DU = (FK - UK*DK) * UU.inv
         # FU = KU*DU + KK * DK
 
-        DU = np.matmul(FK-np.matmul(UK, DK), np.linalg.inv(UU))
+        DU = np.linalg.solve(UU, FK-np.matmul(UK, DK))
+        #DU = np.matmul(FK-np.matmul(UK, DK), np.linalg.inv(UU))
         FU = np.matmul(KU, DU) + np.matmul(KK, DK)
 
         filledDisplacementVector=np.concatenate((DU, DK), axis=0)

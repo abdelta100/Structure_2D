@@ -46,7 +46,7 @@ class Element:
                                      [0, pt3, pt4, 0, -pt3, pt4 / 2],
                                      [-pt1, 0, 0, pt1, 0, 0],
                                      [0, -pt2, -pt3, 0, pt2, -pt3],
-                                     [0, pt3, pt4 / 2, 0, -pt3, pt4]])
+                                     [0, pt3, pt4 / 2, 0, -pt3, pt4]], dtype=np.float64)
 
         return stiffness_matrix
 
@@ -54,13 +54,24 @@ class Element:
         theta = np.arctan2(self.j_Node.y- self.i_Node.y, self.j_Node.x - self.i_Node.x)
         c = np.cos(theta)
         s = np.sin(theta)
+
+        #TODO added to manually force zeros
+        zerolim = 10E-9
+        if -zerolim < c < zerolim:
+            c = 0
+        if -zerolim < s < zerolim:
+            s = 0
+
+        print("c: ", c)
+        print("s: ", s)
+
         # recheck the bottom
         transformation_matrix = np.array([[c, s, 0, 0, 0, 0],
                                           [-s, c, 0, 0, 0, 0],
                                           [0, 0, 1, 0, 0, 0],
                                           [0, 0, 0, c, s, 0],
                                           [0, 0, 0, -s, c, 0],
-                                          [0, 0, 0, 0, 0, 1]])
+                                          [0, 0, 0, 0, 0, 1]], dtype=np.float64)
 
         return transformation_matrix
 
@@ -120,10 +131,13 @@ class Element:
 
     def setMaterial(self, material: Material):
         self.material=material
+        self.E=self.material.elasticModulus
         self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
         self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
 
     def setCrossSection(self, section: CrossSection):
         self.crossSection=section
+        self.A=self.crossSection.calcSectionArea()
+        self.I=self.crossSection.calcMomentofInertia()
         self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
         self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()

@@ -1,0 +1,11 @@
+20-24 Nov 2023:
+
+Worked on why solver distributes reaction from a single point load applied vertically on a node, between the reaction
+immediately in line, and one further away. Explored matrix instability, bit precision etc. No significant progress,
+except false leads.
+
+25 Nov 2023:
+
+Figured out original solver was probably correct in distributing reaction. Non distribution required assuming axial
+stiffnesses were infinite and no axial displacement would occur. However solver factors axial stiffness which causes
+axial displacement, which creates moment, which transfers load to other side and then to the support.
