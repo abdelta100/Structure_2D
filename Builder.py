@@ -16,8 +16,8 @@ nodes.append(Node(20, 20, 2))
 nodes.append(Node(20, 0, 3))
 
 # mater=NewMaterial(name="Custom", density=2000, elastic_mod=200000000, poisson_ratio=.33,comp_strength=3000)
-mater = TestMaterial(E=200000000)
-section = TestRectangularCrossSection(A=1, I=0.333)
+mater = TestMaterial(E=449570.7)
+section = TestRectangularCrossSection(A=(0.0625), I=(3.255E-4))
 
 elements: list[Element] = []
 # TODO building element is cumbersome because of secondary addition of nodes
@@ -41,8 +41,8 @@ structure.supports = supports
 
 loads: list[Load] = []
 #loads.append(PointLoad(10, -90))
-loads.append(PointLoadMember(100, 5))
-loads.append(UniformDistributedLoad(10, 0, 10))
+loads.append(PointLoadMember(-100, 5))
+loads.append(UniformDistributedLoad(-10, 0, 10))
 #nodes[1].addLoad(loads[0])
 elements[1].addLoad(loads[1])
 
@@ -50,7 +50,7 @@ elements[1].addLoad(loads[1])
 structure.solver()
 print(nodes[0].disp)
 print(nodes[3].disp)
-print(nodes[1].netLoad)
+print(nodes[2].netLoad)
 print(supports[0].reactions)
 print(supports[1].reactions)
 

@@ -94,13 +94,13 @@ class Element:
         EA2 = 0
         for load in self.loads:
             tR1, tR2, tV1, tV2 = load.calcFixedEndReactions()
-            ER1 += tR1
-            ER2 += tR2
-            EV1 += tV1
-            EV2 += tV2
+            ER1 -= tR1
+            ER2 -= tR2
+            EV1 -= tV1
+            EV2 -= tV2
             #TODO implement this
-            EA1 += 0
-            EA2 += 0
+            EA1 -= 0
+            EA2 -= 0
 
         self.node1FEM = [ER1, EV1]
         self.node2FEM = [ER2, EV2]

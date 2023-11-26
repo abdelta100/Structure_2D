@@ -49,13 +49,15 @@ class UniformDistributedLoad(Load):
         length = self.beamLength
         dN1 = mid
         dN2 = length - mid
-        R1 = (dN1 * (dN2 ** 2) + ((dN1 - 2 * dN2) * dist ** 2) / 12) * (self.magnitude * dist) / length ** 2
-        R2 = -(dN2 * (dN1 ** 2) + ((dN2 - 2 * dN1) * dist ** 2) / 12) * (self.magnitude * dist) / length ** 2
-        V1 = -((2 * dN1 + length) * dN2 ** 2 + ((dN1 - dN2) / 4) / dist ** 2) * (self.magnitude * dist) / length ** 3
-        V2 = -((2 * dN2 + length) * dN1 ** 2 - ((dN1 - dN2) / 4) / dist ** 2) * (self.magnitude * dist) / length ** 3
+        R1 = -(dN1 * (dN2 ** 2) + ((dN1 - 2 * dN2) * dist ** 2) / 12) * (self.magnitude * dist) / length ** 2
+        R2 = +(dN2 * (dN1 ** 2) + ((dN2 - 2 * dN1) * dist ** 2) / 12) * (self.magnitude * dist) / length ** 2
 
-        # V2 = R1 + R2 + self.calcTotal() * mid / length
-        # V1 = self.calcTotal() - V2
+        # Following two lines provide incorrect result for fixed end shear
+        # Ve1 = -((2 * dN1 + length) * dN2 ** 2 + ((dN1 - dN2) / 4) / dist ** 2) * (self.magnitude * dist) / length ** 3
+        # Ve2 = -((2 * dN2 + length) * dN1 ** 2 - ((dN1 - dN2) / 4) / dist ** 2) * (self.magnitude * dist) / length ** 3
+
+        V2 = -(R1 + R2 + self.calcTotal() * mid) / length
+        V1 = -self.calcTotal() - V2
 
         return R1, R2, V1, V2
 
