@@ -90,12 +90,17 @@ class Element:
         ER2 = 0
         EV1 = 0
         EV2 = 0
+        EA1 = 0
+        EA2 = 0
         for load in self.loads:
             tR1, tR2, tV1, tV2 = load.calcFixedEndReactions()
             ER1 += tR1
             ER2 += tR2
-            EV2 += tV1
+            EV1 += tV1
             EV2 += tV2
+            #TODO implement this
+            EA1 += 0
+            EA2 += 0
 
         self.node1FEM = [ER1, EV1]
         self.node2FEM = [ER2, EV2]
@@ -104,11 +109,11 @@ class Element:
         EV2x, EV2y = getComponentsRefBeam(self.getAngle(), EV2)
 
         self.i_Node.FEM[0] += EV1x
-        self.i_Node.FEM[1] += EV1x
+        self.i_Node.FEM[1] += EV1y
         self.i_Node.FEM[2] += ER1
         self.j_Node.FEM[0] += EV2x
         self.j_Node.FEM[1] += EV2y
-        self.j_Node.FEM[1] += ER2
+        self.j_Node.FEM[2] += ER2
 
     def getAngle(self):
         angle = math.atan2(self.j_Node.y - self.i_Node.y, self.j_Node.x - self.i_Node.x)

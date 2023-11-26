@@ -29,7 +29,7 @@ def degree2rad(degrees):
 def matrixStabilityCheck(matrix):
     cond = np.linalg.cond(matrix)
 
-    if cond > 1e-12:
+    if cond > 1e-14:
 
         singular_values = np.linalg.svd(matrix)[1]
         max_sv = np.max(singular_values)

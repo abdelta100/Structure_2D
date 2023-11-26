@@ -1,5 +1,5 @@
-import math
 from abc import ABC
+
 from AuxillaryFunctions import *
 
 
@@ -20,7 +20,7 @@ class Load(ABC):
         pass
 
     def cleanInputs(self):
-        #TODO deal with either repeating code or adding unknown variables
+        # TODO deal with either repeating code or adding unknown variables
         if self.start < 0: self.start = 0
         if self.start > self.beamLength: self.start = self.beamLength
         if self.end > self.beamLength: self.end = self.beamLength
@@ -49,12 +49,15 @@ class UniformDistributedLoad(Load):
         length = self.beamLength
         dN1 = mid
         dN2 = length - mid
-        R1 = ((2 * dN1 + length) * dN2 ** 2 + ((dN1 - dN2) / 4) / dist ** 2)(self.magnitude * dist) / length ** 3
-        R2 = ((2 * dN2 + length) * dN1 ** 2 - ((dN1 - dN2) / 4) / dist ** 2)(self.magnitude * dist) / length ** 3
-        V1 = -self.magnitude * dist / length ** 2
-        V2 = -self.magnitude * dist / length ** 2
+        R1 = (dN1 * (dN2 ** 2) + ((dN1 - 2 * dN2) * dist ** 2) / 12) * (self.magnitude * dist) / length ** 2
+        R2 = -(dN2 * (dN1 ** 2) + ((dN2 - 2 * dN1) * dist ** 2) / 12) * (self.magnitude * dist) / length ** 2
+        V1 = -((2 * dN1 + length) * dN2 ** 2 + ((dN1 - dN2) / 4) / dist ** 2) * (self.magnitude * dist) / length ** 3
+        V2 = -((2 * dN2 + length) * dN1 ** 2 - ((dN1 - dN2) / 4) / dist ** 2) * (self.magnitude * dist) / length ** 3
 
-        return (R1, R2), (V1, V2)
+        # V2 = R1 + R2 + self.calcTotal() * mid / length
+        # V1 = self.calcTotal() - V2
+
+        return R1, R2, V1, V2
 
 
 class PointLoad(Load):
@@ -62,7 +65,7 @@ class PointLoad(Load):
         super().__init__()
         self.loadClass = "Point Load"
         self.magnitude = magnitude
-        #TODO implement rad to degree?
+        # TODO implement rad to degree?
         self.angle: float = degree2rad(angle_degree)
 
     def getComponents(self):
@@ -107,22 +110,22 @@ class PointLoadMember(PointLoad):
     def __init__(self, magnitude, location):
         super().__init__(magnitude)
         self.location = location
-        #TODO jugar fix this
+        # TODO jugar fix this
         self.beamLength = 10
 
     def calcCentroid(self):
         return self.location
 
     def calcFixedEndReactions(self):
-        #TODO amend for axial force too
+        # TODO amend for axial force too
         length = self.beamLength
         dN1 = self.location
         dN2 = length - dN1
 
-        R1 = (3 * dN1 + dN2) * self.magnitude * dN2 ** 2 / length ** 3
-        R2 = (3 * dN2 + dN1) * self.magnitude * dN1 ** 2 / length ** 3
-        V1 = -self.magnitude * dN1 * dN2 ** 2 / length ** 2
-        V2 = -self.magnitude * dN2 * dN1 ** 2 / length ** 2
+        V1 = -(3 * dN1 + dN2) * self.magnitude * dN2 ** 2 / length ** 3
+        V2 = -(3 * dN2 + dN1) * self.magnitude * dN1 ** 2 / length ** 3
+        R1 = self.magnitude * dN1 * dN2 ** 2 / length ** 2
+        R2 = -self.magnitude * dN2 * dN1 ** 2 / length ** 2
 
         return R1, R2, V1, V2
 

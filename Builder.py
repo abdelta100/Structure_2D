@@ -40,10 +40,11 @@ structure.elements = elements
 structure.supports = supports
 
 loads: list[Load] = []
-loads.append(PointLoad(10, -90))
-# loads.append(PointLoadMember(40, 5))
-nodes[1].addLoad(loads[0])
-# elements[1].addLoad(loads[0])
+#loads.append(PointLoad(10, -90))
+loads.append(PointLoadMember(100, 5))
+loads.append(UniformDistributedLoad(10, 0, 10))
+#nodes[1].addLoad(loads[0])
+elements[1].addLoad(loads[1])
 
 
 structure.solver()
@@ -54,5 +55,7 @@ print(supports[0].reactions)
 print(supports[1].reactions)
 
 # TODO solve bug when force appplied at node. Re Farhan Chat
+# TODO Fix FEM directions, needs to be opposite applied load, and the directions need to be reversed again when
+#  transferring to nodes
 
 
