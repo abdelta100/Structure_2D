@@ -21,6 +21,7 @@ class Load(ABC):
 
     def cleanInputs(self):
         # TODO deal with either repeating code or adding unknown variables
+        # TODO think of moving this outside
         if self.start < 0: self.start = 0
         if self.start > self.beamLength: self.start = self.beamLength
         if self.end > self.beamLength: self.end = self.beamLength
@@ -159,7 +160,54 @@ class VaryingDistributedLoad(Load):
 
     def calcFixedEndReactions(self):
         # TODO either find complete formula, or restrict case to start at 0 and end at L
-        pass
+
+        # s1=pre_dist
+        # s2=dist
+        # s3=post_dist
+        # refactor later
+        s2 = self.end - self.start
+        s1 = self.start - 0
+        s3 = self.beamLength - self.end
+
+        # Split into a triangular load and a rectangular load
+        # Triangular Load
+        tri_mag = self.end_magnitude - self.start_magnitude
+
+        # Foloowing Formulae for R1 and R2, referenced from an eng-tip site
+        # https://www.eng-tips.com/viewthread.cfm?qid=413577
+        # Thanks to KootK, whoever he is, for saving me hours of algebra, which he probably did before I was even born
+        # minus switched to maintain convention
+
+        R1 = -(1 / 60) * tri_mag * s2 * (
+                (2 * s2 ** 3) + (5 * s2 ** 2) * s1 + (20 * s3 ** 2) * s2 + (
+                30 * s3 ** 2) * s1 + (10 * s2 ** 2) * s3 + (
+                        20 * s1 * s2 * s3)) / (s1 + s2 + s3) ** 2
+        R2 = (1 / 60) * tri_mag * s2 * (
+                (3 * s2 ** 3) + (15 * s2 ** 2) * s3 + (10 * s1 ** 2) * s2 + (
+                30 * s1 ** 2) * s3 + (10 * s2 ** 2) * s1 + (
+                        40 * s1 * s2 * s3)) / (s1 + s2 + s3) ** 2
+
+        V2 = -(R1 + R2 + self.calcTotal() * self.calcCentroid()) / self.beamLength
+        V1 = -self.calcTotal() - V2
+
+        #Temporary rectangular load to handle rectangular portion calculation
+
+        temprect = UniformDistributedLoad(self.start_magnitude, self.start, self.end)
+        temprect.beamLength = self.beamLength
+
+        tR1, tR2, tV1, tV2 = temprect.calcFixedEndReactions()
+
+        R1 += tR1
+        R2 += tR2
+        # V1 += tV1
+        # V2 += tV2
+
+        del temprect
+
+        V2 = -(R1 + R2 + self.calcTotal() * self.calcCentroid()) / self.beamLength
+        V1 = -self.calcTotal() - V2
+
+        return R1, R2, V1, V2
 
 
 class Moment(Load):
@@ -191,3 +239,26 @@ class MomentMember(Moment):
 
     def toNode(self):
         pass
+
+
+class TrapezoidalDistributedLoad(VaryingDistributedLoad):
+
+    def __init__(self, location_list: list[float], magnitude_list: list[float]):
+        self.loadClass = "Trapezoidal Distributed Load"
+        self.VDLset: list[VaryingDistributedLoad] = []
+        self.inputIntegrityCheck(location_list, magnitude_list)
+        self.initializeVDLset(location_list, magnitude_list)
+        pass
+
+    def initializeVDLset(self, location_list, magnitude_list):
+        for index in range(location_list):
+            self.VDLset.append(
+                VaryingDistributedLoad(magnitude_list[index], magnitude_list[index + 1],
+                                       location_list[index], location_list[index + 1]))
+
+    def inputIntegrityCheck(self, location_list, magnitude_list):
+        if len(location_list) != len(magnitude_list):
+            print("Location and Magnitude points are not equal. A Magnitude must be provided for each Location listed")
+            raise ValueError
+        # TODO create checks for sequence ordering of locations
+        # pass
