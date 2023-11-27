@@ -22,11 +22,16 @@ class Load(ABC):
     def cleanInputs(self):
         # TODO deal with either repeating code or adding unknown variables
         # TODO think of moving this outside
-        if self.start < 0: self.start = 0
-        if self.start > self.beamLength: self.start = self.beamLength
-        if self.end > self.beamLength: self.end = self.beamLength
-        if self.end < 0: self.end = 0
-        if self.start > self.end: self.end = self.start
+        if isinstance(self, TrapezoidalDistributedLoad):
+            for vdl in self.VDLset:
+                vdl.beamLength=self.beamLength
+                vdl.cleanInputs()
+        else:
+            if self.start < 0: self.start = 0
+            if self.start > self.beamLength: self.start = self.beamLength
+            if self.end > self.beamLength: self.end = self.beamLength
+            if self.end < 0: self.end = 0
+            if self.start > self.end: self.end = self.start
 
 
 class UniformDistributedLoad(Load):
@@ -190,7 +195,7 @@ class VaryingDistributedLoad(Load):
         V2 = -(R1 + R2 + self.calcTotal() * self.calcCentroid()) / self.beamLength
         V1 = -self.calcTotal() - V2
 
-        #Temporary rectangular load to handle rectangular portion calculation
+        # Temporary rectangular load to handle rectangular portion calculation
 
         temprect = UniformDistributedLoad(self.start_magnitude, self.start, self.end)
         temprect.beamLength = self.beamLength
@@ -251,7 +256,7 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
         pass
 
     def initializeVDLset(self, location_list, magnitude_list):
-        for index in range(location_list):
+        for index in range(len(location_list)-1):
             self.VDLset.append(
                 VaryingDistributedLoad(magnitude_list[index], magnitude_list[index + 1],
                                        location_list[index], location_list[index + 1]))
@@ -262,3 +267,22 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
             raise ValueError
         # TODO create checks for sequence ordering of locations
         # pass
+
+    def calcFixedEndReactions(self):
+        R1 = 0
+        R2 = 0
+        V1 = 0
+        V2 = 0
+        A1 = 0
+        A2 = 0
+
+        for vdl in self.VDLset:
+            tR1, tR2, tV1, tV2 = vdl.calcFixedEndReactions()
+            R1 += tR1
+            R2 += tR2
+            V1 += tV1
+            V2 += tV2
+            A1 += 0
+            A2 += 0
+
+        return R1, R2, V1, V2

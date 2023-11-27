@@ -1,3 +1,5 @@
+Blabadooshk's Log
+
 20-24 Nov 2023:
 
 Worked on why solver distributes reaction from a single point load applied vertically on a node, between the reaction
@@ -9,3 +11,18 @@ except false leads.
 Figured out original solver was probably correct in distributing reaction. Non distribution required assuming axial
 stiffnesses were infinite and no axial displacement would occur. However solver factors axial stiffness which causes
 axial displacement, which creates moment, which transfers load to other side and then to the support.
+
+26 Nov 2023:
+
+Got UDL cases to work, fixed all sign issues in transferring FEM, should probably be correct
+
+27 Nov 2023:
+
+Got VDL cases to work, got formula from an arcane source. Instead of decomposing a trapezoidal shaped load into two
+triangular loads, I distributed it into a triangular and a rectangular load. Used half of the sources equations for
+right and left fixed end moment equations since i had discarded one of two triangular loads. For rectangular I
+initialized a UDL instance, and returned its fixed end moments, summed both moments obtained. Then used the summation of
+moment and forces (condition of equilibrium) to arrive at the fixed end shears (instead of using the sources equations,
+which looked verbose to say the least). Verified against SAP2000.
+Got Trapezoidal distributed Loads (i use it to refer to loads with multiple load magnitude, location pairs) to work,
+I think. Divided multiple VDLs and summed their fixed end reactions.

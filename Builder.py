@@ -43,9 +43,10 @@ loads: list[Load] = []
 #loads.append(PointLoad(10, -90))
 loads.append(PointLoadMember(-100, 5))
 loads.append(VaryingDistributedLoad(-13, -28, 5, 13))
-loads.append(UniformDistributedLoad(-10, 0, 10))
+loads.append(UniformDistributedLoad(-10, 0, 20))
+loads.append(TrapezoidalDistributedLoad([0, 3, 10], [-10, -10, -10]))
 #nodes[1].addLoad(loads[0])
-elements[1].addLoad(loads[1])
+elements[1].addLoad(loads[3])
 
 
 structure.solver()
