@@ -45,7 +45,7 @@ class StructureGlobal:
             permutation_matrix[i, j] = 1
         return permutation_matrix, np.matmul(permutation_matrix,disp_vector)
 
-    def solver(self):
+    def _solver(self):
         #TODO handle single beam edge case or similar
         #TODO permutation matrix needs to be created by factoring in Supports not just nodes
         permutationMatrix, permutatedOrder=self.createPermutationMatrix()
@@ -122,6 +122,8 @@ class StructureGlobal:
         return orderedLoads
 
     def pushDisplacements(self, orderedDispVector, permutationMatrix):
+        # TODO future issue here. If my internal nodes are not fixed in some dof, I might have to transfer my nodal
+        #  loads (received from analysis) back to nodes, and draw sfd etc from that
         origOrderDisplacement=np.matmul(np.linalg.inv(permutationMatrix), orderedDispVector)
         for node in self.nodes:
             tempdisp=origOrderDisplacement[node.idnum*self.dof:(node.idnum+1)*self.dof]
@@ -137,6 +139,9 @@ class StructureGlobal:
             support.reactions["Fx"] = tempforce[0]
             support.reactions["Fy"] = tempforce[1]
             support.reactions["Mxy"] = tempforce[2]
+
+    def runAnalysis(self):
+        self._solver()
 
 
 

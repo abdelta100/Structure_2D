@@ -24,7 +24,7 @@ class Load(ABC):
         # TODO think of moving this outside
         if isinstance(self, TrapezoidalDistributedLoad):
             for vdl in self.VDLset:
-                vdl.beamLength=self.beamLength
+                vdl.beamLength = self.beamLength
                 vdl.cleanInputs()
         else:
             if self.start < 0: self.start = 0
@@ -32,6 +32,9 @@ class Load(ABC):
             if self.end > self.beamLength: self.end = self.beamLength
             if self.end < 0: self.end = 0
             if self.start > self.end: self.end = self.start
+
+    def magnitudeAtPoint(self, point):
+        pass
 
 
 class UniformDistributedLoad(Load):
@@ -66,6 +69,14 @@ class UniformDistributedLoad(Load):
         V1 = -self.calcTotal() - V2
 
         return R1, R2, V1, V2
+
+    def magnitudeAtPoint(self, point):
+        # TODO returning magnitude for now, but issue with projections and loads at an angle etc
+        if self.start <= point <= self.end:
+            return self.magnitude
+
+        else:
+            return 0
 
 
 class PointLoad(Load):
@@ -136,6 +147,12 @@ class PointLoadMember(PointLoad):
         R2 = -self.magnitude * dN2 * dN1 ** 2 / length ** 2
 
         return R1, R2, V1, V2
+
+    def magnitudeAtPoint(self, point):
+        if point == self.location:
+            return self.magnitude
+        else:
+            return 0
 
 
 class VaryingDistributedLoad(Load):
@@ -214,6 +231,13 @@ class VaryingDistributedLoad(Load):
 
         return R1, R2, V1, V2
 
+    def magnitudeAtPoint(self, point):
+        if self.start <= point <= self.end:
+            return self.start_magnitude + (
+                        (point - self.start) * (self.end_magnitude - self.start_magnitude) / (self.end - self.start))
+        else:
+            return 0
+
 
 class Moment(Load):
     def __init__(self, magnitude):
@@ -256,7 +280,7 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
         pass
 
     def initializeVDLset(self, location_list, magnitude_list):
-        for index in range(len(location_list)-1):
+        for index in range(len(location_list) - 1):
             self.VDLset.append(
                 VaryingDistributedLoad(magnitude_list[index], magnitude_list[index + 1],
                                        location_list[index], location_list[index + 1]))
@@ -286,3 +310,11 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
             A2 += 0
 
         return R1, R2, V1, V2
+
+    def magnitudeAtPoint(self, point):
+        for vdl in self.VDLset:
+            magnitude = vdl.magnitudeAtPoint(point)
+            if magnitude != 0:
+                return magnitude
+        else:
+            return 0

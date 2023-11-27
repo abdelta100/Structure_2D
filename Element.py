@@ -146,3 +146,45 @@ class Element:
         self.I=self.crossSection.calcMomentofInertia()
         self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
         self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
+
+    def calculateInternalForcesAndDisplacements(self):
+        self.calcShearForceDiagram()
+        pass
+
+    def showInternals(self):
+        pass
+
+    def calcShearForceDiagram(self):
+        num_elems=1000
+        resolution_distance=self.length/num_elems
+        # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
+        i_node_Force=self.i_Node.FEM
+        j_node_Force = self.j_Node.FEM
+        subElems=[i*self.length/num_elems for i in range(num_elems)]
+        #transform i_node force to local coords
+        sfd=[-i_node_Force[1]]
+        for point in subElems:
+            for load in self.loads:
+                sfd[-1]+=load.magnitudeAtPoint(point)*resolution_distance
+
+            sfd.append(sfd[-1])
+        sfd.pop(-1)
+
+        return subElems, sfd
+
+    def showForceDiagram(self):
+        num_elems = 1000
+        # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
+        #TODO, this displays opposite force to normally seen, because the force is in fact negative, work on this.
+        subElems = [i * self.length / num_elems for i in range(num_elems)]
+        # transform i_node force to local coords
+        fd = [0]
+        for point in subElems:
+            for load in self.loads:
+                #TODO switching to minus here for clearer diagrams
+                fd[-1] -= load.magnitudeAtPoint(point)
+            fd.append(0)
+        fd.pop(-1)
+        print(fd)
+
+        return subElems, fd

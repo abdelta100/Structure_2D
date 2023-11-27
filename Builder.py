@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from CrossSection import TestRectangularCrossSection
 from Element import Element
@@ -42,21 +43,26 @@ structure.supports = supports
 loads: list[Load] = []
 #loads.append(PointLoad(10, -90))
 loads.append(PointLoadMember(-100, 5))
-loads.append(VaryingDistributedLoad(-13, -28, 5, 13))
-loads.append(UniformDistributedLoad(-10, 0, 20))
-loads.append(TrapezoidalDistributedLoad([0, 3, 10], [-10, -10, -10]))
+loads.append(VaryingDistributedLoad(-28, -13, 7, 15))
+loads.append(UniformDistributedLoad(-28, 0, 3))
+loads.append(TrapezoidalDistributedLoad([5, 13, 20], [-13, -28, -28]))
 #nodes[1].addLoad(loads[0])
+elements[1].addLoad(loads[2])
 elements[1].addLoad(loads[3])
 
 
-structure.solver()
+structure.runAnalysis()
 print(nodes[0].disp)
 print(nodes[3].disp)
 print(nodes[2].netLoad)
 print(supports[0].reactions)
 print(supports[1].reactions)
+x, y=elements[1].showForceDiagram()
+plt.plot(x, y)
+plt.plot([0, elements[1].length], [0,0])
+plt.show()
 
-# TODO solve bug when force appplied at node. Re Farhan Chat
+# TODO solve bug when force appplied at node. Re Farhan Chat. Fixed but not yet removed todo.
 # TODO Fix FEM directions, needs to be opposite applied load, and the directions need to be reversed again when
 #  transferring to nodes
 
