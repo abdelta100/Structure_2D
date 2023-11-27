@@ -158,11 +158,11 @@ class Element:
         num_elems=1000
         resolution_distance=self.length/num_elems
         # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
-        i_node_Force=self.i_Node.FEM
+        i_node_Force_transformed=np.matmul(np.array(self.i_Node.FEM), self.transformationMatrix[:3, :3])
         j_node_Force = self.j_Node.FEM
         subElems=[i*self.length/num_elems for i in range(num_elems)]
         #transform i_node force to local coords
-        sfd=[-i_node_Force[1]]
+        sfd=[-i_node_Force_transformed[1]]
         for point in subElems:
             for load in self.loads:
                 sfd[-1]+=load.magnitudeAtPoint(point)*resolution_distance
@@ -171,6 +171,29 @@ class Element:
         sfd.pop(-1)
 
         return subElems, sfd
+
+    def calcBendingMomentDiagram(self):
+        #TODO add cosmetic opening and closing points on diagram arrays for clarity??
+        num_elems = 1000
+        resolution_distance = self.length / num_elems
+        subElems, sfd= self.calcShearForceDiagram()
+        print(sfd)
+        # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
+        print(np.array(self.i_Node.FEM))
+        print(self.transformationMatrix[:3, :3])
+        i_node_Force_transformed = np.matmul(np.array(self.i_Node.FEM), self.transformationMatrix[:3, :3])
+        print(i_node_Force_transformed[2])
+
+        # transform i_node force to local coords
+        bmd = [i_node_Force_transformed[2]]
+        for point, sf in zip(subElems, sfd):
+            bmd.append(bmd[-1])
+            bmd[-1] += sf*resolution_distance
+
+        bmd.pop(-1)
+
+        return subElems, bmd
+
 
     def showForceDiagram(self):
         num_elems = 1000

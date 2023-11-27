@@ -57,7 +57,7 @@ print(nodes[3].disp)
 print(nodes[2].netLoad)
 print(supports[0].reactions)
 print(supports[1].reactions)
-x, y=elements[1].showForceDiagram()
+x, y=elements[1].calcBendingMomentDiagram()
 plt.plot(x, y)
 plt.plot([0, elements[1].length], [0,0])
 plt.show()
@@ -65,5 +65,6 @@ plt.show()
 # TODO solve bug when force appplied at node. Re Farhan Chat. Fixed but not yet removed todo.
 # TODO Fix FEM directions, needs to be opposite applied load, and the directions need to be reversed again when
 #  transferring to nodes
+# TODO there IS an error in transferring reactionary forces or whatever  at nodes post analysis
 
 
