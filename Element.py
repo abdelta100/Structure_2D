@@ -1,9 +1,9 @@
 import math
-from scipy.spatial.distance import euclidean
 
 import numpy as np
+from scipy.spatial.distance import euclidean
 
-from AuxillaryFunctions import getComponentsRefBeam
+from AuxillaryFunctions import getPerpendicularComponentsRefBeam, getAxialComponentsRefBeam
 from CrossSection import DefaultRectangularCrossSection, CrossSection
 from Load import Load, UniformDistributedLoad, VaryingDistributedLoad, PointLoadMember
 from Material import DefaultMaterial, Material
@@ -22,11 +22,10 @@ class Element:
         self.A: float = self.crossSection.area
         self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
         self.loads: list[Load] = []
-        #TODO adds x or axial comp in nodeFEM
+        # TODO adds x or axial comp in nodeFEM
         self.node1FEM: list[float] = [0, 0]
         self.node2FEM: list[float] = [0, 0]
-        #TODO add initilaization for transformed matrix and transformation matrices
-        #TODO add functions for recalculation of matrices
+        # TODO add initilaization for transformed matrix and transformation matrices
         self.transformationMatrix: np.ndarray = self.elementTransformationMatrix()
         self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
 
@@ -51,11 +50,11 @@ class Element:
         return stiffness_matrix
 
     def elementTransformationMatrix(self):
-        theta = np.arctan2(self.j_Node.y- self.i_Node.y, self.j_Node.x - self.i_Node.x)
+        theta = np.arctan2(self.j_Node.y - self.i_Node.y, self.j_Node.x - self.i_Node.x)
         c = np.cos(theta)
         s = np.sin(theta)
 
-        #TODO added to manually force zeros
+        # TODO added to manually force zeros
         zerolim = 10E-9
         if -zerolim < c < zerolim:
             c = 0
@@ -77,9 +76,9 @@ class Element:
 
     def addLoad(self, load: Load):
         self.loads.append(load)
-        load.beamLength=self.length
+        load.beamLength = self.length
         if isinstance(load, PointLoadMember):
-            load.location=load.location=load.beamLength
+            load.location = load.location = load.beamLength
         # TODO needs work to define order of precedence. Add load first or select member first?
 
     def addLoadInteractive(self):
@@ -93,26 +92,28 @@ class Element:
         EA1 = 0
         EA2 = 0
         for load in self.loads:
-            tR1, tR2, tV1, tV2 = load.calcFixedEndReactions()
+            tR1, tR2, tV1, tV2, tA1, tA2 = load.calcFixedEndReactions()
             ER1 -= tR1
             ER2 -= tR2
             EV1 -= tV1
             EV2 -= tV2
-            #TODO implement this
-            EA1 -= 0
-            EA2 -= 0
+            # TODO implement this
+            EA1 -= tA1
+            EA2 -= tA2
 
         self.node1FEM = [ER1, EV1]
         self.node2FEM = [ER2, EV2]
 
-        EV1x, EV1y = getComponentsRefBeam(self.getAngle(), EV1)
-        EV2x, EV2y = getComponentsRefBeam(self.getAngle(), EV2)
+        EV1x, EV1y = getPerpendicularComponentsRefBeam(self.getAngle(), EV1)
+        EV2x, EV2y = getPerpendicularComponentsRefBeam(self.getAngle(), EV2)
+        EA1x, EA1y = getAxialComponentsRefBeam(self.getAngle(), EA1)
+        EA2x, EA2y = getAxialComponentsRefBeam(self.getAngle(), EA2)
 
-        self.i_Node.FEM[0] += EV1x
-        self.i_Node.FEM[1] += EV1y
+        self.i_Node.FEM[0] += EV1x + EA1x
+        self.i_Node.FEM[1] += EV1y + EA1y
         self.i_Node.FEM[2] += ER1
-        self.j_Node.FEM[0] += EV2x
-        self.j_Node.FEM[1] += EV2y
+        self.j_Node.FEM[0] += EV2x + EA2x
+        self.j_Node.FEM[1] += EV2y + EA2y
         self.j_Node.FEM[2] += ER2
 
     def getAngle(self):
@@ -121,29 +122,30 @@ class Element:
 
     def recalculateMatrices(self) -> None:
         self.localStiffnessMatrix = self.elementStiffnessMatrix()
-        self.transformationMatrix=self.elementTransformationMatrix()
-        self.globalStiffnessMatrix=self.local2globalStiffness()
+        self.transformationMatrix = self.elementTransformationMatrix()
+        self.globalStiffnessMatrix = self.local2globalStiffness()
 
     def local2globalStiffness(self):
-        globalStiffnessMatrix= np.matmul(self.transformationMatrix, np.matmul(self.localStiffnessMatrix, self.transformationMatrix.T))
+        globalStiffnessMatrix = np.matmul(self.transformationMatrix,
+                                          np.matmul(self.localStiffnessMatrix, self.transformationMatrix.T))
         return globalStiffnessMatrix
 
-    def addLoad(self, load:Load):
+    def addLoad(self, load: Load):
         load.beamLength = self.length
         if isinstance(load, UniformDistributedLoad) or isinstance(load, VaryingDistributedLoad):
             load.cleanInputs()
         self.loads.append(load)
 
     def setMaterial(self, material: Material):
-        self.material=material
-        self.E=self.material.elasticModulus
+        self.material = material
+        self.E = self.material.elasticModulus
         self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
         self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
 
     def setCrossSection(self, section: CrossSection):
-        self.crossSection=section
-        self.A=self.crossSection.calcSectionArea()
-        self.I=self.crossSection.calcMomentofInertia()
+        self.crossSection = section
+        self.A = self.crossSection.calcSectionArea()
+        self.I = self.crossSection.calcMomentofInertia()
         self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
         self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
 
@@ -155,17 +157,17 @@ class Element:
         pass
 
     def calcShearForceDiagram(self):
-        num_elems=1000
-        resolution_distance=self.length/num_elems
+        num_elems = 1000
+        resolution_distance = self.length / num_elems
         # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
-        i_node_Force_transformed=np.matmul(np.array(self.i_Node.FEM), self.transformationMatrix[:3, :3])
+        i_node_Force_transformed = np.matmul(np.array(self.i_Node.FEM), self.transformationMatrix[:3, :3])
         j_node_Force = self.j_Node.FEM
-        subElems=[i*self.length/num_elems for i in range(num_elems)]
-        #transform i_node force to local coords
-        sfd=[-i_node_Force_transformed[1]]
+        subElems = [i * self.length / num_elems for i in range(num_elems)]
+        # transform i_node force to local coords
+        sfd = [-i_node_Force_transformed[1]]
         for point in subElems:
             for load in self.loads:
-                sfd[-1]+=load.magnitudeAtPoint(point)*resolution_distance
+                sfd[-1] += load.magnitudeAtPoint(point) * resolution_distance
 
             sfd.append(sfd[-1])
         sfd.pop(-1)
@@ -173,10 +175,10 @@ class Element:
         return subElems, sfd
 
     def calcBendingMomentDiagram(self):
-        #TODO add cosmetic opening and closing points on diagram arrays for clarity??
+        # TODO add cosmetic opening and closing points on diagram arrays for clarity??
         num_elems = 1000
         resolution_distance = self.length / num_elems
-        subElems, sfd= self.calcShearForceDiagram()
+        subElems, sfd = self.calcShearForceDiagram()
         print(sfd)
         # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
         print(np.array(self.i_Node.FEM))
@@ -188,24 +190,23 @@ class Element:
         bmd = [i_node_Force_transformed[2]]
         for point, sf in zip(subElems, sfd):
             bmd.append(bmd[-1])
-            bmd[-1] += sf*resolution_distance
+            bmd[-1] += sf * resolution_distance
 
         bmd.pop(-1)
 
         return subElems, bmd
 
-
     def showForceDiagram(self):
         num_elems = 1000
         # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
-        #TODO, this displays opposite force to normally seen, because the force is in fact negative, work on this.
+        # TODO, this displays opposite force to normally seen, because the force is in fact negative, work on this.
         subElems = [i * self.length / num_elems for i in range(num_elems)]
         # transform i_node force to local coords
         fd = [0]
         for point in subElems:
             for load in self.loads:
-                #TODO switching to minus here for clearer diagrams
-                fd[-1] -= load.magnitudeAtPoint(point)
+                # TODO switching to minus here for clearer diagrams
+                fd[-1] -= load.magnitudeAtPoint(point, axis="perpendicular")
             fd.append(0)
         fd.pop(-1)
         print(fd)

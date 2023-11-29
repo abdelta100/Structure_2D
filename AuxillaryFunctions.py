@@ -5,9 +5,14 @@ import numpy as np
 zerolim = 10e-13
 
 
-def getComponentsRefBeam(theta, vector):
+def getPerpendicularComponentsRefBeam(theta, vector):
     Vx = vector * math.sin(theta)
     Vy = vector * math.cos(theta)
+    return Vx, Vy
+
+def getAxialComponentsRefBeam(theta, vector):
+    Vx = vector * math.cos(theta)
+    Vy = vector * math.sin(theta)
     return Vx, Vy
 
 

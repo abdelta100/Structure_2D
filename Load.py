@@ -68,7 +68,12 @@ class UniformDistributedLoad(Load):
         V2 = -(R1 + R2 + self.calcTotal() * mid) / length
         V1 = -self.calcTotal() - V2
 
-        return R1, R2, V1, V2
+        # TODO maybe yoou dont need the centroid for the Axial part but the mean? or the thingy that splits a graph into
+        # two equal areas
+        A1 = 0
+        A2 = 0
+
+        return R1, R2, V1, V2, A1, A2
 
     def magnitudeAtPoint(self, point):
         # TODO returning magnitude for now, but issue with projections and loads at an angle etc
@@ -126,11 +131,12 @@ class PointLoad(Load):
 
 
 class PointLoadMember(PointLoad):
-    def __init__(self, magnitude, location):
+    def __init__(self, magnitude, location, angle=270):
         super().__init__(magnitude)
         self.location = location
         # TODO jugar fix this
         self.beamLength = 10
+        self.angle = degree2rad(angle)
 
     def calcCentroid(self):
         return self.location
@@ -141,16 +147,29 @@ class PointLoadMember(PointLoad):
         dN1 = self.location
         dN2 = length - dN1
 
-        V1 = -(3 * dN1 + dN2) * self.magnitude * dN2 ** 2 / length ** 3
-        V2 = -(3 * dN2 + dN1) * self.magnitude * dN1 ** 2 / length ** 3
-        R1 = self.magnitude * dN1 * dN2 ** 2 / length ** 2
-        R2 = -self.magnitude * dN2 * dN1 ** 2 / length ** 2
+        perp_magnitude = self.magnitude * math.sin(self.angle)
 
-        return R1, R2, V1, V2
+        V1 = -(3 * dN1 + dN2) * perp_magnitude * dN2 ** 2 / length ** 3
+        V2 = -(3 * dN2 + dN1) * perp_magnitude * dN1 ** 2 / length ** 3
+        R1 = perp_magnitude * dN1 * dN2 ** 2 / length ** 2
+        R2 = -perp_magnitude * dN2 * dN1 ** 2 / length ** 2
 
-    def magnitudeAtPoint(self, point):
+        par_magnitude = self.magnitude * math.cos(self.angle)
+
+        # A1 * dN1 + A2 * dN2 = 0
+        # A1 + A2 = - par_magnitude
+
+        A1 = -par_magnitude * dN2 / (dN2 + dN1)
+        A2 = -par_magnitude * dN1 / (dN1 + dN2)
+
+        return R1, R2, V1, V2, A1, A2
+
+    def magnitudeAtPoint(self, point, axis="perpendicular"):
+        # TODO fix the axis wala jugaar
         if point == self.location:
-            return self.magnitude
+            magnitude = {"perpendicular": self.magnitude * math.sin(self.angle),
+                         "parallel": self.magnitude * math.cos(self.angle)}
+            return magnitude[axis]
         else:
             return 0
 
@@ -181,7 +200,7 @@ class VaryingDistributedLoad(Load):
         return total
 
     def calcFixedEndReactions(self):
-        # TODO either find complete formula, or restrict case to start at 0 and end at L
+        # TODO work on axial comp
 
         # s1=pre_dist
         # s2=dist
@@ -212,6 +231,9 @@ class VaryingDistributedLoad(Load):
         V2 = -(R1 + R2 + self.calcTotal() * self.calcCentroid()) / self.beamLength
         V1 = -self.calcTotal() - V2
 
+        A1 = 0
+        A2 = 0
+
         # Temporary rectangular load to handle rectangular portion calculation
 
         temprect = UniformDistributedLoad(self.start_magnitude, self.start, self.end)
@@ -229,12 +251,12 @@ class VaryingDistributedLoad(Load):
         V2 = -(R1 + R2 + self.calcTotal() * self.calcCentroid()) / self.beamLength
         V1 = -self.calcTotal() - V2
 
-        return R1, R2, V1, V2
+        return R1, R2, V1, V2, A1, A2
 
     def magnitudeAtPoint(self, point):
         if self.start <= point <= self.end:
             return self.start_magnitude + (
-                        (point - self.start) * (self.end_magnitude - self.start_magnitude) / (self.end - self.start))
+                    (point - self.start) * (self.end_magnitude - self.start_magnitude) / (self.end - self.start))
         else:
             return 0
 
@@ -290,6 +312,7 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
             print("Location and Magnitude points are not equal. A Magnitude must be provided for each Location listed")
             raise ValueError
         # TODO create checks for sequence ordering of locations
+        # TODO create a cleaner for entry data. i.e when there are two different load mags at the same point
         # pass
 
     def calcFixedEndReactions(self):

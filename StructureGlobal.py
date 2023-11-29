@@ -17,8 +17,7 @@ class StructureGlobal:
         self.dof = 3
 
     def createGlobalStiffnessMatrix(self):
-        # TODO implement Global Stiffness Matrix
-        # TODO guves an error, all entries are null for some reason
+        # TODO include element node releases or something
         # transformedElementMatrices=[element.transformedMatrix for element in self.elements]
         globalStiffnessMatrix = np.zeros(shape=(len(self.nodes) * 3, len(self.nodes) * 3), dtype=np.float64)
         for element in self.elements:
@@ -66,7 +65,6 @@ class StructureGlobal:
         # | FK |
         # | FU |
 
-        #TODO work out what index works here, current config gives FU as known instead of FK
 
         permutatedAppliedLoads=self.orderAppliedLoads(permutationMatrix)
         FK=permutatedAppliedLoads[:fixed_index]
