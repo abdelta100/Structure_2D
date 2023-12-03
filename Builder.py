@@ -30,8 +30,8 @@ for element in elements:
     element.setCrossSection(section)
 
 supports: list[Support] = []
-supports.append(Support.init_from_node(nodes[0], 0))
-supports.append(Support.init_from_node(nodes[3], 1))
+supports.append(Support.init_from_node(nodes[0], 0, support_type='Fixed'))
+supports.append(Support.init_from_node(nodes[3], 1, support_type='roller'))
 
 structure: StructureGlobal = StructureGlobal()
 structure.nodes = nodes
@@ -42,12 +42,12 @@ loads: list[Load] = []
 #loads.append(PointLoad(50, 0))
 #loads.append(PointLoad(50, 0))
 loads.append(PointLoadMember(100, 13, angle=0))
-loads.append(VaryingDistributedLoad(-28, -13, 7, 15, angle=0))
-loads.append(UniformDistributedLoad(10, 5, 15, angle=0))
-loads.append(TrapezoidalDistributedLoad([5, 13, 20], [-13, -28, -28], angle=0))
+loads.append(VaryingDistributedLoad(28, 13, 9, 16, angle=0))
+loads.append(UniformDistributedLoad(10, 8, 17, angle=0))
+loads.append(TrapezoidalDistributedLoad([5, 13, 20], [13, 28, 28], angle=0))
 #nodes[1].addLoad(loads[0])
 #nodes[2].addLoad(loads[1])
-elements[1].addLoad(loads[2])
+elements[1].addLoad(loads[3])
 # elements[1].addLoad(loads[3])
 
 

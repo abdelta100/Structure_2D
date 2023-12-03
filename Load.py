@@ -219,29 +219,31 @@ class VaryingDistributedLoad(Load):
 
         # Split into a triangular load and a rectangular load
         # Triangular Load
-        tri_mag = (self.end_magnitude - self.start_magnitude * math.sin) * self.angle
+        tri_mag=(self.end_magnitude - self.start_magnitude)
+        tri_mag_perp = tri_mag * math.sin(self.angle)
 
         # Foloowing Formulae for R1 and R2, referenced from an eng-tip site
         # https://www.eng-tips.com/viewthread.cfm?qid=413577
         # Thanks to KootK, whoever he is, for saving me hours of algebra, which he probably did before I was even born
         # minus switched to maintain convention
 
-        R1 = -(1 / 60) * tri_mag * s2 * (
+        R1 = -(1 / 60) * tri_mag_perp * s2 * (
                 (2 * s2 ** 3) + (5 * s2 ** 2) * s1 + (20 * s3 ** 2) * s2 + (
                 30 * s3 ** 2) * s1 + (10 * s2 ** 2) * s3 + (
                         20 * s1 * s2 * s3)) / (s1 + s2 + s3) ** 2
-        R2 = (1 / 60) * tri_mag * s2 * (
+        R2 = (1 / 60) * tri_mag_perp * s2 * (
                 (3 * s2 ** 3) + (15 * s2 ** 2) * s3 + (10 * s1 ** 2) * s2 + (
                 30 * s1 ** 2) * s3 + (10 * s2 ** 2) * s1 + (
                         40 * s1 * s2 * s3)) / (s1 + s2 + s3) ** 2
 
-        V2 = -(R1 + R2 + self.calcTotal() * math.cos(self.angle) * self.calcCentroid()) / self.beamLength
-        V1 = -self.calcTotal() * math.cos(self.angle) - V2
+        V2 = -(R1 + R2 + self.calcTotal() * math.sin(self.angle) * self.calcCentroid()) / self.beamLength
+        V1 = -self.calcTotal() * math.sin(self.angle) - V2
 
         # Finding centroid of triangular portion here
         tri_centr = (2 / 3) * s2 + s1
-        A1 = -tri_mag * tri_centr / (self.beamLength)
-        A2 = -tri_mag * (self.beamLength - tri_centr) / (self.beamLength)
+        tri_total_par=tri_mag*math.cos(self.angle)*s2/2
+        A1 = -tri_total_par * tri_centr / (self.beamLength)
+        A2 = -tri_total_par * (self.beamLength - tri_centr) / (self.beamLength)
 
         # Temporary rectangular load to handle rectangular portion calculation
 
