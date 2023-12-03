@@ -79,14 +79,15 @@ class UniformDistributedLoad(Load):
 
         return R1, R2, V1, V2, A1, A2
 
-    def magnitudeAtPoint(self, point):
+    def magnitudeAtPoint(self, point, axis='perpendicular'):
         # TODO returning magnitude for now, but issue with projections and loads at an angle etc
         if self.start <= point <= self.end:
-            return self.magnitude
+            magnitude = {"perpendicular": self.magnitude * math.sin(self.angle),
+                         "parallel": self.magnitude * math.cos(self.angle)}
+            return magnitude[axis]
 
         else:
             return 0
-
 
 class PointLoad(Load):
     def __init__(self, magnitude, angle_degree=0, local=False):
@@ -263,13 +264,16 @@ class VaryingDistributedLoad(Load):
 
         return R1, R2, V1, V2, A1, A2
 
-    def magnitudeAtPoint(self, point):
+    def magnitudeAtPoint(self, point, axis='perpendicular'):
         if self.start <= point <= self.end:
-            return self.start_magnitude + (
-                    (point - self.start) * (self.end_magnitude - self.start_magnitude) / (self.end - self.start))
+            magnitude = {"perpendicular": self.start_magnitude *math.sin(self.angle)+ (
+                    (point - self.start) * (self.end_magnitude - self.start_magnitude) *math.sin(self.angle)/ (self.end - self.start)),
+                         "parallel": self.start_magnitude *math.cos(self.angle)+ (
+                    (point - self.start) * (self.end_magnitude - self.start_magnitude)*math.cos(self.angle) / (self.end - self.start))}
+            return magnitude[axis]
+
         else:
             return 0
-
 
 class Moment(Load):
     def __init__(self, magnitude):
@@ -344,9 +348,9 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
 
         return R1, R2, V1, V2, A1, A2
 
-    def magnitudeAtPoint(self, point):
+    def magnitudeAtPoint(self, point, axis='perpendicular'):
         for vdl in self.VDLset:
-            magnitude = vdl.magnitudeAtPoint(point)
+            magnitude = vdl.magnitudeAtPoint(point, axis)
             if magnitude != 0:
                 return magnitude
         else:

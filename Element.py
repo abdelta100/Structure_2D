@@ -167,6 +167,7 @@ class Element:
         sfd = [-i_node_Force_transformed[1]]
         for point in subElems:
             for load in self.loads:
+                #TODO may cause issue with point loads, since resolution is implied and subElems may skip that particular point
                 sfd[-1] += load.magnitudeAtPoint(point) * resolution_distance
 
             sfd.append(sfd[-1])
