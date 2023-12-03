@@ -38,13 +38,15 @@ class Load(ABC):
 
 
 class UniformDistributedLoad(Load):
-    def __init__(self, magnitude, start_location, end_location):
+    def __init__(self, magnitude, start_location, end_location, angle=270):
+        # TODO implement local reference load application and projected load application
         super().__init__()
         self.loadClass = "Uniformly Distributed Load"
         self.magnitude = magnitude
         self.start = start_location
         self.end = end_location
         self.beamLength = 1
+        self.angle = degree2rad(angle)
 
     def calcTotal(self):
         return self.magnitude * (self.end - self.start)
@@ -56,22 +58,24 @@ class UniformDistributedLoad(Load):
         dist = (self.end - self.start)
         mid = self.calcCentroid()
         length = self.beamLength
+        perp_magnitude = self.magnitude * math.sin(self.angle)
         dN1 = mid
         dN2 = length - mid
-        R1 = -(dN1 * (dN2 ** 2) + ((dN1 - 2 * dN2) * dist ** 2) / 12) * (self.magnitude * dist) / length ** 2
-        R2 = +(dN2 * (dN1 ** 2) + ((dN2 - 2 * dN1) * dist ** 2) / 12) * (self.magnitude * dist) / length ** 2
+        R1 = -(dN1 * (dN2 ** 2) + ((dN1 - 2 * dN2) * dist ** 2) / 12) * (perp_magnitude * dist) / length ** 2
+        R2 = +(dN2 * (dN1 ** 2) + ((dN2 - 2 * dN1) * dist ** 2) / 12) * (perp_magnitude * dist) / length ** 2
 
         # Following two lines provide incorrect result for fixed end shear
         # Ve1 = -((2 * dN1 + length) * dN2 ** 2 + ((dN1 - dN2) / 4) / dist ** 2) * (self.magnitude * dist) / length ** 3
         # Ve2 = -((2 * dN2 + length) * dN1 ** 2 - ((dN1 - dN2) / 4) / dist ** 2) * (self.magnitude * dist) / length ** 3
 
-        V2 = -(R1 + R2 + self.calcTotal() * mid) / length
-        V1 = -self.calcTotal() - V2
+        V2 = -(R1 + R2 + self.calcTotal() * math.sin(self.angle) * mid) / length
+        V1 = -self.calcTotal() * math.sin(self.angle) - V2
 
         # TODO maybe yoou dont need the centroid for the Axial part but the mean? or the thingy that splits a graph into
         # two equal areas
-        A1 = 0
-        A2 = 0
+        par_magnitude_total = self.calcTotal() * math.cos(self.angle)
+        A1 = -par_magnitude_total * dN2 / (dN2 + dN1)
+        A2 = -par_magnitude_total * dN1 / (dN1 + dN2)
 
         return R1, R2, V1, V2, A1, A2
 
@@ -175,13 +179,14 @@ class PointLoadMember(PointLoad):
 
 
 class VaryingDistributedLoad(Load):
-    def __init__(self, start_magniude, end_magnitude, start_location, end_location):
+    def __init__(self, start_magniude, end_magnitude, start_location, end_location, angle=270):
         super().__init__()
         self.loadClass = "Varying Distributed Load"
         self.start_magnitude = start_magniude
         self.end_magnitude = end_magnitude
         self.start = start_location
         self.end = end_location
+        self.angle = degree2rad(angle)
 
     def calcCentroid(self):
         dist = self.end - self.start
@@ -196,6 +201,7 @@ class VaryingDistributedLoad(Load):
         return centr
 
     def calcTotal(self):
+        #TODO maybe do the dictionary thing here with both projections?
         total = (self.end - self.start) * (self.end_magnitude + self.start_magnitude) / 2
         return total
 
@@ -212,7 +218,7 @@ class VaryingDistributedLoad(Load):
 
         # Split into a triangular load and a rectangular load
         # Triangular Load
-        tri_mag = self.end_magnitude - self.start_magnitude
+        tri_mag = (self.end_magnitude - self.start_magnitude * math.sin) * self.angle
 
         # Foloowing Formulae for R1 and R2, referenced from an eng-tip site
         # https://www.eng-tips.com/viewthread.cfm?qid=413577
@@ -228,28 +234,32 @@ class VaryingDistributedLoad(Load):
                 30 * s1 ** 2) * s3 + (10 * s2 ** 2) * s1 + (
                         40 * s1 * s2 * s3)) / (s1 + s2 + s3) ** 2
 
-        V2 = -(R1 + R2 + self.calcTotal() * self.calcCentroid()) / self.beamLength
-        V1 = -self.calcTotal() - V2
+        V2 = -(R1 + R2 + self.calcTotal() * math.cos(self.angle) * self.calcCentroid()) / self.beamLength
+        V1 = -self.calcTotal() * math.cos(self.angle) - V2
 
-        A1 = 0
-        A2 = 0
+        # Finding centroid of triangular portion here
+        tri_centr = (2 / 3) * s2 + s1
+        A1 = -tri_mag * tri_centr / (self.beamLength)
+        A2 = -tri_mag * (self.beamLength - tri_centr) / (self.beamLength)
 
         # Temporary rectangular load to handle rectangular portion calculation
 
-        temprect = UniformDistributedLoad(self.start_magnitude, self.start, self.end)
+        temprect = UniformDistributedLoad(self.start_magnitude, self.start, self.end, angle=self.angle)
         temprect.beamLength = self.beamLength
 
-        tR1, tR2, tV1, tV2 = temprect.calcFixedEndReactions()
+        tR1, tR2, tV1, tV2, tA1, tA2 = temprect.calcFixedEndReactions()
 
         R1 += tR1
         R2 += tR2
+        A1 += tA1
+        A2 += tA2
         # V1 += tV1
         # V2 += tV2
 
         del temprect
 
-        V2 = -(R1 + R2 + self.calcTotal() * self.calcCentroid()) / self.beamLength
-        V1 = -self.calcTotal() - V2
+        V2 = -(R1 + R2 + self.calcTotal() * math.sin(self.angle) * self.calcCentroid()) / self.beamLength
+        V1 = -self.calcTotal() * math.sin(self.angle) - V2
 
         return R1, R2, V1, V2, A1, A2
 
@@ -294,18 +304,18 @@ class MomentMember(Moment):
 
 class TrapezoidalDistributedLoad(VaryingDistributedLoad):
 
-    def __init__(self, location_list: list[float], magnitude_list: list[float]):
+    def __init__(self, location_list: list[float], magnitude_list: list[float], angle=270):
         self.loadClass = "Trapezoidal Distributed Load"
+        self.angle = degree2rad(angle)
         self.VDLset: list[VaryingDistributedLoad] = []
         self.inputIntegrityCheck(location_list, magnitude_list)
         self.initializeVDLset(location_list, magnitude_list)
-        pass
 
     def initializeVDLset(self, location_list, magnitude_list):
         for index in range(len(location_list) - 1):
             self.VDLset.append(
                 VaryingDistributedLoad(magnitude_list[index], magnitude_list[index + 1],
-                                       location_list[index], location_list[index + 1]))
+                                       location_list[index], location_list[index + 1], angle=self.angle))
 
     def inputIntegrityCheck(self, location_list, magnitude_list):
         if len(location_list) != len(magnitude_list):
@@ -324,15 +334,15 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
         A2 = 0
 
         for vdl in self.VDLset:
-            tR1, tR2, tV1, tV2 = vdl.calcFixedEndReactions()
+            tR1, tR2, tV1, tV2, tA1, tA2 = vdl.calcFixedEndReactions()
             R1 += tR1
             R2 += tR2
             V1 += tV1
             V2 += tV2
-            A1 += 0
-            A2 += 0
+            A1 += tA1
+            A2 += tA2
 
-        return R1, R2, V1, V2
+        return R1, R2, V1, V2, A1, A2
 
     def magnitudeAtPoint(self, point):
         for vdl in self.VDLset:

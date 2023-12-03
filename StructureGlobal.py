@@ -141,6 +141,11 @@ class StructureGlobal:
     def runAnalysis(self):
         self._solver()
 
+    def findAllNodalForcesPostAnalysis(self):
+        # TODO implement multisource breadth first search or something to traverse all nodes by and find nodal loads
+        #  via elements
+        pass
+
 
 
 
