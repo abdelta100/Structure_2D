@@ -25,9 +25,9 @@ class Element:
         # TODO adds x or axial comp in nodeFEM
         self.node1FEM: list[float] = [0, 0]
         self.node2FEM: list[float] = [0, 0]
-        # TODO add initilaization for transformed matrix and transformation matrices
         self.transformationMatrix: np.ndarray = self.elementTransformationMatrix()
         self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
+        #TODO add something about self weight
 
     def elementStiffnessMatrix(self):
         # Partial Term 1: EA/L
