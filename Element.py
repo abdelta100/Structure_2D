@@ -14,6 +14,7 @@ class Element:
     def __init__(self, i: Node, j: Node):
         self.i_Node: Node | None = i
         self.j_Node: Node | None = j
+        self.id=0
         self.length: float = euclidean(self.i_Node.pos, self.j_Node.pos)
         self.material: Material = DefaultMaterial()
         self.crossSection: CrossSection = DefaultRectangularCrossSection()

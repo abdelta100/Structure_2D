@@ -58,6 +58,8 @@ class UniformDistributedLoad(Load):
         dist = (self.end - self.start)
         mid = self.calcCentroid()
         length = self.beamLength
+        if dist==0:
+            return 0,0,0,0,0,0
         perp_magnitude = self.magnitude * math.sin(self.angle)
         dN1 = mid
         dN2 = length - mid
@@ -216,6 +218,9 @@ class VaryingDistributedLoad(Load):
         s2 = self.end - self.start
         s1 = self.start - 0
         s3 = self.beamLength - self.end
+
+        if s2==0:
+            return 0,0,0,0,0,0
 
         # Split into a triangular load and a rectangular load
         # Triangular Load

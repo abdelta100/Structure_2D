@@ -2,6 +2,7 @@ import numpy as np
 
 from AuxillaryFunctions import matrixStabilityCheck
 from Element import Element
+from ElementHelperFunctions import ElementHelper
 from Load import Load
 from Node import Node
 from Support import Support
@@ -139,11 +140,51 @@ class StructureGlobal:
             support.reactions["Mxy"] = tempforce[2]
 
     def runAnalysis(self):
+        self.singleFixedBeamHandler()
         self._solver()
 
     def findAllNodalForcesPostAnalysis(self):
+        nodeAdjacencyMatrix, elemNodeIntersection=self.createElementNodeIntersectionMatrix()
+        #Source Nodes for bfs
+        initialNodes=[]
+        for support in self.supports:
+            #TODO Phase the following line out because too bulky
+            initialNodes.append(support)
+
+
         # TODO implement multisource breadth first search or something to traverse all nodes by and find nodal loads
         #  via elements
+        pass
+
+    def createElementNodeIntersectionMatrix(self):
+        nodeAdjacency=np.zeros(shape=(len(self.nodes), len(self.nodes)))
+        elemNodeIntersection=np.zeros(shape=(len(self.nodes), len(self.elements)))
+        for element in self.elements:
+            nodeAdjacency[element.i_Node.idnum, element.j_Node.idnum]=1
+            elemNodeIntersection[element.id, element.i_Node.idnum] = -1
+            elemNodeIntersection[element.id, element.j_Node.idnum] = 1
+        return  nodeAdjacency, elemNodeIntersection
+
+    def structureModelIntegrityChecker(self):
+        #TODO check and assign id nums for nodes and assign idnums to elements, also reorder nodes or elems then
+        pass
+
+    def lookupNodefromIDnum(self, idnum):
+        for node in self.nodes:
+            if node.idnum==idnum:
+                return node
+
+    def singleFixedBeamHandler(self):
+        if len(self.elements)==1:
+            self.nodes.append(Node((self.elements[0].i_Node.x+self.elements[0].j_Node.x)/2,(self.elements[0].i_Node.y+self.elements[0].j_Node.y)/2, 2))
+            #TODO add property copying logic that does not copy member end nodes i guess
+            self.elements.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
+            self.elements[1].i_Node=self.nodes[0]
+            self.elements[1].j_Node=self.nodes[2]
+            self.elements.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
+            self.elements[2].i_Node = self.nodes[2]
+            self.elements[2].j_Node = self.nodes[1]
+            self.elements.pop(0)
         pass
 
 

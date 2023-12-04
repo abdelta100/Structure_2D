@@ -19,6 +19,7 @@ class Node:
         self.FEM: list[float] = [0, 0, 0]
         self.netLoad: list[float] = [0, 0, 0]  # [Moment, Perp Reaction Force]
         self.disp: dict = {"Dx":0, "Dy":0, "Rxy":0}
+        self.nodalForces: dict = {"Fx":0, "Fy":0, "Mxy":0}
 
     @property
     def pos(self):
@@ -63,3 +64,6 @@ class Node:
         #TODO check if the following line should contain load objects or just magnitude
         #TODO also see if i should use a dict object here or not
         self.netLoad = [Fx, Fy, Mxy]
+
+    def pushNodalForces(self):
+        pass

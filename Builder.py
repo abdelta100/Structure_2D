@@ -22,7 +22,8 @@ nodes.append(Node(20, 60, 7))
 nodes.append(Node(0, 80, 8))
 nodes.append(Node(20, 80, 9))
 nodes.append(Node(0, 100, 10))
-nodes.append(Node(20, 100, 11))
+nodes.append(Node(10, 100, 11))
+nodes.append(Node(20, 100, 12))
 
 # mater=NewMaterial(name="Custom", density=2000, elastic_mod=200000000, poisson_ratio=.33,comp_strength=3000)
 mater = TestMaterial(E=449570.7)
@@ -44,7 +45,8 @@ elements.append(Element(nodes[8], nodes[9]))
 elements.append(Element(nodes[9], nodes[7]))
 elements.append(Element(nodes[8], nodes[10]))
 elements.append(Element(nodes[10], nodes[11]))
-elements.append(Element(nodes[11], nodes[9]))
+elements.append(Element(nodes[11], nodes[12]))
+elements.append(Element(nodes[12], nodes[9]))
 
 
 #for element in elements:
@@ -65,9 +67,10 @@ loads.append(PointLoadMember(100, 13, angle=0))
 loads.append(VaryingDistributedLoad(28, 13, 9, 16, angle=0))
 loads.append(UniformDistributedLoad(10, 8, 17, angle=0))
 loads.append(TrapezoidalDistributedLoad([5, 13, 20], [13, 28, 28], angle=0))
-loads.append(PointLoad(100, -90))
+loads.append(PointLoad(1000, -90))
+#TODO error when running following line check
 elements[13].addLoad(loads[3])
-nodes[10].addLoad(loads[4])
+nodes[11].addLoad(loads[4])
 
 structure.runAnalysis()
 print(nodes[0].disp)
