@@ -26,3 +26,6 @@ moment and forces (condition of equilibrium) to arrive at the fixed end shears (
 which looked verbose to say the least). Verified against SAP2000.
 Got Trapezoidal distributed Loads (i use it to refer to loads with multiple load magnitude, location pairs) to work,
 I think. Divided multiple VDLs and summed their fixed end reactions.
+
+22 Dec 2023:
+Add principal force and Principal disp classes to accommodate single nodal loads for transfer etc. include summation behaviour and compose of point load and moment classes idk?
