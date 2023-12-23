@@ -8,14 +8,15 @@ from CrossSection import DefaultRectangularCrossSection, CrossSection
 from Load import Load, UniformDistributedLoad, VaryingDistributedLoad, PointLoadMember
 from Material import DefaultMaterial, Material
 from Node import Node
+from PrincipleForce import PrincipleForce
 
 
 class Element:
     def __init__(self, i: Node, j: Node):
-        self.i_Node: Node | None = i
-        self.j_Node: Node | None = j
+        self._i_Node: Node | None = i
+        self._j_Node: Node | None = j
         self.id=0
-        self.length: float = euclidean(self.i_Node.pos, self.j_Node.pos)
+        self.length: float = self.calc_length()
         self.material: Material = DefaultMaterial()
         self.crossSection: CrossSection = DefaultRectangularCrossSection()
         self.E: float = self.material.elasticModulus
@@ -24,8 +25,8 @@ class Element:
         self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
         self.loads: list[Load] = []
         # TODO adds x or axial comp in nodeFEM
-        self.node1FEM: list[float] = [0, 0]
-        self.node2FEM: list[float] = [0, 0]
+        self.node1FEM: PrincipleForce = PrincipleForce(0,0,0)
+        self.node2FEM: PrincipleForce = PrincipleForce(0,0,0)
         self.transformationMatrix: np.ndarray = self.elementTransformationMatrix()
         self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
         #TODO add something about self weight
@@ -86,6 +87,8 @@ class Element:
         pass
 
     def calculateFixedEndMoments(self):
+        iNodeLoad=PrincipleForce(0, 0, 0)
+        jNodeLoad = PrincipleForce(0, 0, 0)
         ER1 = 0
         ER2 = 0
         EV1 = 0
@@ -98,17 +101,25 @@ class Element:
             ER2 -= tR2
             EV1 -= tV1
             EV2 -= tV2
-            # TODO implement this
             EA1 -= tA1
             EA2 -= tA2
 
-        self.node1FEM = [ER1, EV1]
-        self.node2FEM = [ER2, EV2]
+            # TODO Use Principle Force implementation here
+            iNodeLoadTemp = PrincipleForce(tA1, tV1, tR1)
+            jNodeLoadTemp = PrincipleForce(tA2, tV2, tR2)
+            iNodeLoad+=iNodeLoadTemp
+            jNodeLoad+=jNodeLoadTemp
+
+        self.node1FEM = iNodeLoad
+        self.node2FEM = jNodeLoad
 
         EV1x, EV1y = getPerpendicularComponentsRefBeam(self.getAngle(), EV1)
         EV2x, EV2y = getPerpendicularComponentsRefBeam(self.getAngle(), EV2)
         EA1x, EA1y = getAxialComponentsRefBeam(self.getAngle(), EA1)
         EA2x, EA2y = getAxialComponentsRefBeam(self.getAngle(), EA2)
+
+        iNodeLoadGlobal=iNodeLoad.transform(self.getAngle())
+        jNodeLoadGlobal=jNodeLoad.transform(self.getAngle())
 
         self.i_Node.FEM[0] += EV1x + EA1x
         self.i_Node.FEM[1] += EV1y + EA1y
@@ -116,6 +127,10 @@ class Element:
         self.j_Node.FEM[0] += EV2x + EA2x
         self.j_Node.FEM[1] += EV2y + EA2y
         self.j_Node.FEM[2] += ER2
+
+        #TODO commented out for now to debug implementation
+        # self.i_Node.FEM = iNodeLoadGlobal
+        # self.j_Node.FEM = jNodeLoadGlobal
 
     def getAngle(self):
         angle = math.atan2(self.j_Node.y - self.i_Node.y, self.j_Node.x - self.i_Node.x)
@@ -214,3 +229,28 @@ class Element:
         print(fd)
 
         return subElems, fd
+
+    def calc_length(self):
+        #TODO both sets a value and returns a value, check if this is correct
+        self.length: float = euclidean(self._i_Node.pos, self._j_Node.pos)
+        return self.length
+
+    @property
+    def i_Node(self):
+        return self._i_Node
+
+    @i_Node.setter
+    def i_node(self, i_node):
+        self._i_Node = i_node
+        self.length = self.calc_length()
+
+    @property
+    def j_Node(self):
+        return self._j_Node
+
+    @j_Node.setter
+    def j_Node(self, j_node):
+        self._j_Node = j_node
+        self.length = self.calc_length()
+
+
