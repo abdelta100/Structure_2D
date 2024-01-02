@@ -1,4 +1,5 @@
-from Load import Load, PointLoad, Moment
+from Load import StaticLoad, PointLoad, Moment
+from PrincipleForce import PrincipleForce
 
 
 class Node:
@@ -15,8 +16,8 @@ class Node:
         # self.RyzActive = True
         # self.RxzActive = True
         # TODO implement moment and displacement releases, maybe in the element
-        self.nodalLoads: list[Load] = []
-        self.FEM: list[float] = [0, 0, 0]
+        self.nodalLoads: list[StaticLoad] = []
+        self.FEM: PrincipleForce = PrincipleForce(0,0,0)
         self.netLoad: list[float] = [0, 0, 0]  # [Moment, Perp Reaction Force]
         self.disp: dict = {"Dx":0, "Dy":0, "Rxy":0}
         self.nodalForces: dict = {"Fx":0, "Fy":0, "Mxy":0}
@@ -37,7 +38,7 @@ class Node:
                    "Coordinates: " + str(self.pos) + '\n')
         return selfrep
 
-    def addLoad(self, load: Load):
+    def addLoad(self, load: StaticLoad):
         self.nodalLoads.append(load)
 
     def combineTransferredLoads(self):
@@ -58,9 +59,9 @@ class Node:
         Fx, Fy = combPointLoad.getComponents()
         Mxy = combMomentLoad.magnitude
 
-        Fx += self.FEM[0]
-        Fy += self.FEM[1]
-        Mxy += self.FEM[2]
+        Fx += self.FEM.fx
+        Fy += self.FEM.fy
+        Mxy += self.FEM.mxy
         #TODO check if the following line should contain load objects or just magnitude
         #TODO also see if i should use a dict object here or not
         self.netLoad = [Fx, Fy, Mxy]

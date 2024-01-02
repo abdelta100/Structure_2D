@@ -3,7 +3,7 @@ import numpy as np
 from AuxillaryFunctions import matrixStabilityCheck
 from Element import Element
 from ElementHelperFunctions import ElementHelper
-from Load import Load
+from Load import StaticLoad
 from Node import Node
 from Support import Support
 
@@ -13,7 +13,7 @@ class StructureGlobal:
         self.nodes: list[Node] = []
         self.elements: list[Element] = []
         self.supports: list[Support] = []
-        self.loads: list[Load] = []
+        self.loads: list[StaticLoad] = []
         self.stiffnessMatrix: np.array = np.zeros(shape=(len(self.nodes) * 3, len(self.nodes) * 3))
         self.dof = 3
 

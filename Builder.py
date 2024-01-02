@@ -61,12 +61,12 @@ structure.nodes = nodes
 structure.elements = elements
 structure.supports = supports
 
-loads: list[Load] = []
-loads.append(MomentMember(128, 6))
+loads: list[StaticLoad] = []
+loads.append(MomentMember(124, 10))
 loads.append(PointLoadMember(100, 13, angle=0))
-loads.append(VaryingDistributedLoad(28, 13, 9, 16, angle=0))
-loads.append(UniformDistributedLoad(10, 8, 17, angle=0))
-loads.append(TrapezoidalDistributedLoad([5, 13, 20], [13, 28, 28], angle=0))
+loads.append(VaryingDistributedLoad(3, 17, 1, 14, angle=-90))
+loads.append(UniformDistributedLoad(10, 8, 17, angle=-90))
+loads.append(TrapezoidalDistributedLoad([5, 13, 20], [13, 28, 28], angle=-90))
 loads.append(PointLoad(1000, -90))
 
 #TODO error when running following line check
@@ -82,7 +82,7 @@ print(supports[1].reactions)
 x, y = elements[1].calcBendingMomentDiagram()
 
 allElemDisp=StructureGlobalHelper.plotNodalDisplacementGraph(structure)
-print(allElemDisp)
+# print(allElemDisp)
 for element in allElemDisp:
     plt.plot(element[0], element[1], '-b')
 #plt.plot(x, y)

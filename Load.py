@@ -1,14 +1,19 @@
 from abc import ABC
 
 from AuxillaryFunctions import *
+from PrincipleForce import PrincipleForce
 
 
-class Load(ABC):
+class StaticLoad(ABC):
     def __init__(self, magnitude: float = 0, local=False):
         self.loadClass: str = "None"
         self.name: str = "None"
         self.beamLength: float = 1
         # TODO implement local and global load application
+
+    def setBeamLength(self, length):
+        # TODO add property handlers idk
+        self.beamLength = length
 
     def calcCentroid(self) -> float:
         pass
@@ -16,7 +21,7 @@ class Load(ABC):
     def calcTotal(self) -> float:
         pass
 
-    def calcFixedEndReactions(self) -> list[float]:
+    def calcFixedEndReactions(self) -> tuple[PrincipleForce, PrincipleForce]:
         pass
 
     def cleanInputs(self):
@@ -37,7 +42,7 @@ class Load(ABC):
         pass
 
 
-class UniformDistributedLoad(Load):
+class UniformDistributedLoad(StaticLoad):
     def __init__(self, magnitude, start_location, end_location, angle=270):
         # TODO implement local reference load application and projected load application
         super().__init__()
@@ -54,21 +59,17 @@ class UniformDistributedLoad(Load):
     def calcCentroid(self):
         return (self.end + self.start) / 2
 
-    def calcFixedEndReactions(self):
+    def calcFixedEndReactions(self) -> tuple[PrincipleForce, PrincipleForce]:
         dist = (self.end - self.start)
         mid = self.calcCentroid()
         length = self.beamLength
-        if dist==0:
-            return 0,0,0,0,0,0
+        if dist == 0:
+            return PrincipleForce(0, 0, 0), PrincipleForce(0, 0, 0)
         perp_magnitude = self.magnitude * math.sin(self.angle)
         dN1 = mid
         dN2 = length - mid
         R1 = -(dN1 * (dN2 ** 2) + ((dN1 - 2 * dN2) * dist ** 2) / 12) * (perp_magnitude * dist) / length ** 2
         R2 = +(dN2 * (dN1 ** 2) + ((dN2 - 2 * dN1) * dist ** 2) / 12) * (perp_magnitude * dist) / length ** 2
-
-        # Following two lines provide incorrect result for fixed end shear
-        # Ve1 = -((2 * dN1 + length) * dN2 ** 2 + ((dN1 - dN2) / 4) / dist ** 2) * (self.magnitude * dist) / length ** 3
-        # Ve2 = -((2 * dN2 + length) * dN1 ** 2 - ((dN1 - dN2) / 4) / dist ** 2) * (self.magnitude * dist) / length ** 3
 
         V2 = -(R1 + R2 + self.calcTotal() * math.sin(self.angle) * mid) / length
         V1 = -self.calcTotal() * math.sin(self.angle) - V2
@@ -79,7 +80,10 @@ class UniformDistributedLoad(Load):
         A1 = -par_magnitude_total * dN2 / (dN2 + dN1)
         A2 = -par_magnitude_total * dN1 / (dN1 + dN2)
 
-        return R1, R2, V1, V2, A1, A2
+        iNodeFer = PrincipleForce(A1, V1, R1)
+        jNodeFer = PrincipleForce(A2, V2, R2)
+
+        return iNodeFer, jNodeFer
 
     def magnitudeAtPoint(self, point, axis='perpendicular'):
         # TODO returning magnitude for now, but issue with projections and loads at an angle etc
@@ -91,7 +95,8 @@ class UniformDistributedLoad(Load):
         else:
             return 0
 
-class PointLoad(Load):
+
+class PointLoad(StaticLoad):
     def __init__(self, magnitude, angle_degree=0, local=False):
         super().__init__()
         self.loadClass = "Point Load"
@@ -148,7 +153,7 @@ class PointLoadMember(PointLoad):
     def calcCentroid(self):
         return self.location
 
-    def calcFixedEndReactions(self):
+    def calcFixedEndReactions(self) -> tuple[PrincipleForce, PrincipleForce]:
         # TODO amend for axial force too
         length = self.beamLength
         dN1 = self.location
@@ -163,13 +168,13 @@ class PointLoadMember(PointLoad):
 
         par_magnitude = self.magnitude * math.cos(self.angle)
 
-        # A1 * dN1 + A2 * dN2 = 0
-        # A1 + A2 = - par_magnitude
-
         A1 = -par_magnitude * dN2 / (dN2 + dN1)
         A2 = -par_magnitude * dN1 / (dN1 + dN2)
 
-        return R1, R2, V1, V2, A1, A2
+        iNodeFer = PrincipleForce(A1, V1, R1)
+        jNodeFer = PrincipleForce(A2, V2, R2)
+
+        return iNodeFer, jNodeFer
 
     def magnitudeAtPoint(self, point, axis="perpendicular"):
         # TODO fix the axis wala jugaar
@@ -181,7 +186,7 @@ class PointLoadMember(PointLoad):
             return 0
 
 
-class VaryingDistributedLoad(Load):
+class VaryingDistributedLoad(StaticLoad):
     def __init__(self, start_magniude, end_magnitude, start_location, end_location, angle=270):
         super().__init__()
         self.loadClass = "Varying Distributed Load"
@@ -204,11 +209,11 @@ class VaryingDistributedLoad(Load):
         return centr
 
     def calcTotal(self):
-        #TODO maybe do the dictionary thing here with both projections?
+        # TODO maybe do the dictionary thing here with both projections?
         total = (self.end - self.start) * (self.end_magnitude + self.start_magnitude) / 2
         return total
 
-    def calcFixedEndReactions(self):
+    def calcFixedEndReactions(self) -> tuple[PrincipleForce, PrincipleForce]:
         # TODO work on axial comp
 
         # s1=pre_dist
@@ -219,12 +224,12 @@ class VaryingDistributedLoad(Load):
         s1 = self.start - 0
         s3 = self.beamLength - self.end
 
-        if s2==0:
-            return 0,0,0,0,0,0
+        if s2 == 0:
+            return PrincipleForce(0, 0, 0), PrincipleForce(0, 0, 0)
 
         # Split into a triangular load and a rectangular load
         # Triangular Load
-        tri_mag=(self.end_magnitude - self.start_magnitude)
+        tri_mag = (self.end_magnitude - self.start_magnitude)
         tri_mag_perp = tri_mag * math.sin(self.angle)
 
         # Foloowing Formulae for R1 and R2, referenced from an eng-tip site
@@ -240,49 +245,56 @@ class VaryingDistributedLoad(Load):
                 (3 * s2 ** 3) + (15 * s2 ** 2) * s3 + (10 * s1 ** 2) * s2 + (
                 30 * s1 ** 2) * s3 + (10 * s2 ** 2) * s1 + (
                         40 * s1 * s2 * s3)) / (s1 + s2 + s3) ** 2
-
-        V2 = -(R1 + R2 + self.calcTotal() * math.sin(self.angle) * self.calcCentroid()) / self.beamLength
-        V1 = -self.calcTotal() * math.sin(self.angle) - V2
+        # initialize to zero because we need total shear and for that we need to find total moment on each side,
+        # which we will find in the rectange step after this
+        V1 = 0
+        V2 = 0
 
         # Finding centroid of triangular portion here
         tri_centr = (2 / 3) * s2 + s1
-        tri_total_par=tri_mag*math.cos(self.angle)*s2/2
+        tri_total_par = tri_mag * math.cos(self.angle) * s2 / 2
         A1 = -tri_total_par * tri_centr / (self.beamLength)
         A2 = -tri_total_par * (self.beamLength - tri_centr) / (self.beamLength)
 
-        # Temporary rectangular load to handle rectangular portion calculation
+        iNodeFer = PrincipleForce(A1, V1, R1)
+        jNodeFer = PrincipleForce(A2, V2, R2)
 
-        temprect = UniformDistributedLoad(self.start_magnitude, self.start, self.end, angle=self.angle)
+
+        # Temporary rectangular load to handle rectangular portion calculation
+        temprect = UniformDistributedLoad(self.start_magnitude, self.start, self.end, angle=rad2degree(self.angle))
         temprect.beamLength = self.beamLength
 
-        tR1, tR2, tV1, tV2, tA1, tA2 = temprect.calcFixedEndReactions()
+        iNodeFerTemp, jNodeFerTemp = temprect.calcFixedEndReactions()
 
-        R1 += tR1
-        R2 += tR2
-        A1 += tA1
-        A2 += tA2
-        # V1 += tV1
-        # V2 += tV2
+        iNodeFer += iNodeFerTemp
+        jNodeFer += jNodeFerTemp
 
         del temprect
 
-        V2 = -(R1 + R2 + self.calcTotal() * math.sin(self.angle) * self.calcCentroid()) / self.beamLength
+        V2 = -(iNodeFerTemp.mxy + jNodeFerTemp.mxy + self.calcTotal() * math.sin(
+            self.angle) * self.calcCentroid()) / self.beamLength
         V1 = -self.calcTotal() * math.sin(self.angle) - V2
 
-        return R1, R2, V1, V2, A1, A2
+        iNodeFer.fy = V1
+        jNodeFer.fy = V2
+
+        return iNodeFer, jNodeFer
 
     def magnitudeAtPoint(self, point, axis='perpendicular'):
         if self.start <= point <= self.end:
-            magnitude = {"perpendicular": self.start_magnitude *math.sin(self.angle)+ (
-                    (point - self.start) * (self.end_magnitude - self.start_magnitude) *math.sin(self.angle)/ (self.end - self.start)),
-                         "parallel": self.start_magnitude *math.cos(self.angle)+ (
-                    (point - self.start) * (self.end_magnitude - self.start_magnitude)*math.cos(self.angle) / (self.end - self.start))}
+            magnitude = {"perpendicular": self.start_magnitude * math.sin(self.angle) + (
+                    (point - self.start) * (self.end_magnitude - self.start_magnitude) * math.sin(self.angle) / (
+                    self.end - self.start)),
+                         "parallel": self.start_magnitude * math.cos(self.angle) + (
+                                 (point - self.start) * (self.end_magnitude - self.start_magnitude) * math.cos(
+                             self.angle) / (self.end - self.start))}
             return magnitude[axis]
 
         else:
             return 0
 
-class Moment(Load):
+
+class Moment(StaticLoad):
     def __init__(self, magnitude):
         super().__init__(magnitude)
         self.loadClass = "Moment"
@@ -309,6 +321,24 @@ class MomentMember(Moment):
     def calcCentroid(self):
         return self.location
 
+    def calcFixedEndReactions(self) -> tuple[PrincipleForce, PrincipleForce]:
+        mag = self.magnitude
+        dist = self.location
+        length = self.beamLength
+        distend = length - dist
+
+        R1 = mag * (distend) * (2 * dist - (distend)) / length ** 2
+        R2 = mag * (dist) * (2 * (distend) - dist) / length ** 2
+        V1 = 6 * mag * dist * distend / length ** 3
+        V2 = -6 * mag * dist * distend / length ** 3
+        A1 = 0
+        A2 = 0
+
+        iNodeFer = PrincipleForce(A1, V1, R1)
+        jNodeFer = PrincipleForce(A2, V2, R2)
+
+        return iNodeFer, jNodeFer
+
     def toNode(self):
         pass
 
@@ -326,7 +356,7 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
         for index in range(len(location_list) - 1):
             self.VDLset.append(
                 VaryingDistributedLoad(magnitude_list[index], magnitude_list[index + 1],
-                                       location_list[index], location_list[index + 1], angle=self.angle))
+                                       location_list[index], location_list[index + 1], angle=rad2degree(self.angle)))
 
     def inputIntegrityCheck(self, location_list, magnitude_list):
         if len(location_list) != len(magnitude_list):
@@ -336,24 +366,16 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
         # TODO create a cleaner for entry data. i.e when there are two different load mags at the same point
         # pass
 
-    def calcFixedEndReactions(self):
-        R1 = 0
-        R2 = 0
-        V1 = 0
-        V2 = 0
-        A1 = 0
-        A2 = 0
+    def calcFixedEndReactions(self) -> tuple[PrincipleForce, PrincipleForce]:
+        iNodeFer = PrincipleForce(0, 0, 0)
+        jNodeFer = PrincipleForce(0, 0, 0)
 
         for vdl in self.VDLset:
-            tR1, tR2, tV1, tV2, tA1, tA2 = vdl.calcFixedEndReactions()
-            R1 += tR1
-            R2 += tR2
-            V1 += tV1
-            V2 += tV2
-            A1 += tA1
-            A2 += tA2
+            iNodeFerTemp, jNodeFerTemp = vdl.calcFixedEndReactions()
+            iNodeFer += iNodeFerTemp
+            jNodeFer += jNodeFerTemp
 
-        return R1, R2, V1, V2, A1, A2
+        return iNodeFer, jNodeFer
 
     def magnitudeAtPoint(self, point, axis='perpendicular'):
         for vdl in self.VDLset:

@@ -3,9 +3,8 @@ import math
 import numpy as np
 from scipy.spatial.distance import euclidean
 
-from AuxillaryFunctions import getPerpendicularComponentsRefBeam, getAxialComponentsRefBeam
 from CrossSection import DefaultRectangularCrossSection, CrossSection
-from Load import Load, UniformDistributedLoad, VaryingDistributedLoad, PointLoadMember
+from Load import StaticLoad, UniformDistributedLoad, VaryingDistributedLoad, PointLoadMember, MomentMember
 from Material import DefaultMaterial, Material
 from Node import Node
 from PrincipleForce import PrincipleForce
@@ -15,7 +14,7 @@ class Element:
     def __init__(self, i: Node, j: Node):
         self._i_Node: Node | None = i
         self._j_Node: Node | None = j
-        self.id=0
+        self.id = 0
         self.length: float = self.calc_length()
         self.material: Material = DefaultMaterial()
         self.crossSection: CrossSection = DefaultRectangularCrossSection()
@@ -23,13 +22,13 @@ class Element:
         self.I: float = self.crossSection.momentOfInertia
         self.A: float = self.crossSection.area
         self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
-        self.loads: list[Load] = []
+        self.loads: list[StaticLoad] = []
         # TODO adds x or axial comp in nodeFEM
-        self.node1FEM: PrincipleForce = PrincipleForce(0,0,0)
-        self.node2FEM: PrincipleForce = PrincipleForce(0,0,0)
+        self.node1FEM: PrincipleForce = PrincipleForce(0, 0, 0)
+        self.node2FEM: PrincipleForce = PrincipleForce(0, 0, 0)
         self.transformationMatrix: np.ndarray = self.elementTransformationMatrix()
         self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
-        #TODO add something about self weight
+        # TODO add something about self weight
 
     def elementStiffnessMatrix(self):
         # Partial Term 1: EA/L
@@ -76,7 +75,7 @@ class Element:
 
         return transformation_matrix
 
-    def addLoad(self, load: Load):
+    def addLoad(self, load: StaticLoad):
         self.loads.append(load)
         load.beamLength = self.length
         if isinstance(load, PointLoadMember):
@@ -87,50 +86,21 @@ class Element:
         pass
 
     def calculateFixedEndMoments(self):
-        iNodeLoad=PrincipleForce(0, 0, 0)
+        iNodeLoad = PrincipleForce(0, 0, 0)
         jNodeLoad = PrincipleForce(0, 0, 0)
-        ER1 = 0
-        ER2 = 0
-        EV1 = 0
-        EV2 = 0
-        EA1 = 0
-        EA2 = 0
         for load in self.loads:
-            tR1, tR2, tV1, tV2, tA1, tA2 = load.calcFixedEndReactions()
-            ER1 -= tR1
-            ER2 -= tR2
-            EV1 -= tV1
-            EV2 -= tV2
-            EA1 -= tA1
-            EA2 -= tA2
-
-            # TODO Use Principle Force implementation here
-            iNodeLoadTemp = PrincipleForce(tA1, tV1, tR1)
-            jNodeLoadTemp = PrincipleForce(tA2, tV2, tR2)
-            iNodeLoad+=iNodeLoadTemp
-            jNodeLoad+=jNodeLoadTemp
+            iNodeLoadTemp, jNodeLoadTemp = load.calcFixedEndReactions()
+            iNodeLoad -= iNodeLoadTemp
+            jNodeLoad -= jNodeLoadTemp
 
         self.node1FEM = iNodeLoad
         self.node2FEM = jNodeLoad
 
-        EV1x, EV1y = getPerpendicularComponentsRefBeam(self.getAngle(), EV1)
-        EV2x, EV2y = getPerpendicularComponentsRefBeam(self.getAngle(), EV2)
-        EA1x, EA1y = getAxialComponentsRefBeam(self.getAngle(), EA1)
-        EA2x, EA2y = getAxialComponentsRefBeam(self.getAngle(), EA2)
+        iNodeLoadGlobal = iNodeLoad.returnTransformed(self.getAngle())
+        jNodeLoadGlobal = jNodeLoad.returnTransformed(self.getAngle())
 
-        iNodeLoadGlobal=iNodeLoad.transform(self.getAngle())
-        jNodeLoadGlobal=jNodeLoad.transform(self.getAngle())
-
-        self.i_Node.FEM[0] += EV1x + EA1x
-        self.i_Node.FEM[1] += EV1y + EA1y
-        self.i_Node.FEM[2] += ER1
-        self.j_Node.FEM[0] += EV2x + EA2x
-        self.j_Node.FEM[1] += EV2y + EA2y
-        self.j_Node.FEM[2] += ER2
-
-        #TODO commented out for now to debug implementation
-        # self.i_Node.FEM = iNodeLoadGlobal
-        # self.j_Node.FEM = jNodeLoadGlobal
+        self.i_Node.FEM += iNodeLoadGlobal
+        self.j_Node.FEM += jNodeLoadGlobal
 
     def getAngle(self):
         angle = math.atan2(self.j_Node.y - self.i_Node.y, self.j_Node.x - self.i_Node.x)
@@ -146,7 +116,7 @@ class Element:
                                           np.matmul(self.localStiffnessMatrix, self.transformationMatrix.T))
         return globalStiffnessMatrix
 
-    def addLoad(self, load: Load):
+    def addLoad(self, load: StaticLoad):
         load.beamLength = self.length
         if isinstance(load, UniformDistributedLoad) or isinstance(load, VaryingDistributedLoad):
             load.cleanInputs()
@@ -176,16 +146,17 @@ class Element:
         num_elems = 1000
         resolution_distance = self.length / num_elems
         # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
-        i_node_Force_transformed = np.matmul(np.array(self.i_Node.FEM), self.transformationMatrix[:3, :3])
+        i_node_Force_transformed = np.matmul(np.array(self.i_Node.FEM.tolist()), self.transformationMatrix[:3, :3])
         j_node_Force = self.j_Node.FEM
         subElems = [i * self.length / num_elems for i in range(num_elems)]
         # transform i_node force to local coords
         sfd = [-i_node_Force_transformed[1]]
         for point in subElems:
             for load in self.loads:
-                #TODO may cause issue with point loads, since resolution is implied and subElems may skip that particular point
-                sfd[-1] += load.magnitudeAtPoint(point) * resolution_distance
-
+                # TODO may cause issue with point loads, since resolution is implied and subElems may skip that particular point
+                if not isinstance(load, MomentMember):
+                    sfd[-1] += load.magnitudeAtPoint(point) * resolution_distance
+                    # TODO shear and bmd code is a mess fix it
             sfd.append(sfd[-1])
         sfd.pop(-1)
 
@@ -200,7 +171,7 @@ class Element:
         # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
         print(np.array(self.i_Node.FEM))
         print(self.transformationMatrix[:3, :3])
-        i_node_Force_transformed = np.matmul(np.array(self.i_Node.FEM), self.transformationMatrix[:3, :3])
+        i_node_Force_transformed = np.matmul(np.array(self.i_Node.FEM.tolist()), self.transformationMatrix[:3, :3])
         print(i_node_Force_transformed[2])
 
         # transform i_node force to local coords
@@ -231,7 +202,7 @@ class Element:
         return subElems, fd
 
     def calc_length(self):
-        #TODO both sets a value and returns a value, check if this is correct
+        # TODO both sets a value and returns a value, check if this is correct
         self.length: float = euclidean(self._i_Node.pos, self._j_Node.pos)
         return self.length
 
@@ -240,7 +211,7 @@ class Element:
         return self._i_Node
 
     @i_Node.setter
-    def i_node(self, i_node):
+    def i_Node(self, i_node):
         self._i_Node = i_node
         self.length = self.calc_length()
 
@@ -252,5 +223,3 @@ class Element:
     def j_Node(self, j_node):
         self._j_Node = j_node
         self.length = self.calc_length()
-
-
