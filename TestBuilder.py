@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from CrossSection import TestRectangularCrossSection
 from Element import Element
 from Load import *
-from Material import TestMaterial
+from Material import TestMaterial, DefaultMaterial
 from Node import Node
 from StructureGlobal import StructureGlobal
 from Support import Support
@@ -32,6 +32,7 @@ mater = TestMaterial(E=2E11)
 section = TestRectangularCrossSection(A=(0.05), I=(0.0001))
 
 elements: list[Element] = []
+#TODO add a kwarg or something for direct assigning material and section in instance call
 elements.append(Element(nodes[0], nodes[1]))
 elements.append(Element(nodes[1], nodes[2]))
 elements.append(Element(nodes[2], nodes[3]))

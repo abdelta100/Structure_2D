@@ -33,6 +33,14 @@ class NewMaterial(Material):
 
 class DefaultMaterial(Material):
     def __init__(self):
+        """
+Initializes a DefaultMaterial object. Takes no inputs. Default Material Values are assigned.\n
+\n
+Compressive Strength: 3000 units\n
+Elastic Modulus: 2700000 units\n
+Poisson Ration: 0.33
+        :rtype: Material
+        """
         super().__init__()
         self.name = "Default"
         self.compressiveStrength = 3000
