@@ -305,7 +305,7 @@ class Moment(StaticLoad):
 
     def __add__(self, other):
         if isinstance(other, Moment):
-            return self.magnitude + other.magnitude
+            return Moment(self.magnitude + other.magnitude)
         else:
             # TODO check what exception to throw
             # raise Exception

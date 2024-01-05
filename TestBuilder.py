@@ -1,3 +1,5 @@
+from math import cos, sin
+
 import matplotlib.pyplot as plt
 
 from CrossSection import TestRectangularCrossSection
@@ -26,8 +28,8 @@ nodes.append(Node(20, 0, 3))
 # nodes.append(Node(20, 100, 12))
 
 # mater=NewMaterial(name="Custom", density=2000, elastic_mod=200000000, poisson_ratio=.33,comp_strength=3000)
-mater = TestMaterial(E=449570.7)
-section = TestRectangularCrossSection(A=(0.0625), I=(3.255E-4))
+mater = TestMaterial(E=2E11)
+section = TestRectangularCrossSection(A=(0.05), I=(0.0001))
 
 elements: list[Element] = []
 elements.append(Element(nodes[0], nodes[1]))
@@ -48,9 +50,9 @@ elements.append(Element(nodes[2], nodes[3]))
 # elements.append(Element(nodes[12], nodes[9]))
 
 
-#for element in elements:
-#    element.setMaterial(mater)
-#    element.setCrossSection(section)
+for element in elements:
+    element.setMaterial(mater)
+    element.setCrossSection(section)
 
 supports: list[Support] = []
 supports.append(Support.init_from_node(nodes[0], 0, support_type='Fixed'))
@@ -62,21 +64,25 @@ structure.elements = elements
 structure.supports = supports
 
 loads: list[StaticLoad] = []
+loads.append(Moment(50))
 loads.append(MomentMember(124, 10))
 loads.append(PointLoadMember(100, 13, angle=0))
-loads.append(VaryingDistributedLoad(3, 17, 1, 14, angle=-90))
+loads.append(VaryingDistributedLoad(5*cos(20), 10*cos(20), 4, 14, angle=-90))
+loads.append(VaryingDistributedLoad(5*sin(20), 10*sin(20), 4, 14, angle=0))
+loads.append(VaryingDistributedLoad(5, 10, 4, 14, angle=-70))
 loads.append(UniformDistributedLoad(10, 8, 17, angle=-90))
 loads.append(TrapezoidalDistributedLoad([5, 13, 20], [13, 28, 28], angle=-90))
 loads.append(PointLoad(1000, -90))
 
 #TODO error when running following line check
-elements[1].addLoad(loads[0])
+nodes[1].addLoad(loads[0])
+# elements[1].addLoad(loads[3])
 # nodes[11].addLoad(loads[4])
 
 structure.runAnalysis()
 print(nodes[0].disp)
 # print(nodes[3].disp)
-print(nodes[2].netLoad)
+print(nodes[1].netLoad)
 print(supports[0].reactions)
 print(supports[1].reactions)
 x, y = elements[1].calcBendingMomentDiagram()
