@@ -24,9 +24,9 @@ class Element:
         # TODO adds x or axial comp in nodeFEM
         self.node1FEM: PrincipleForce = PrincipleForce(0, 0, 0)
         self.node2FEM: PrincipleForce = PrincipleForce(0, 0, 0)
-        self.localStiffnessMatrix: np.ndarray = np.zeros(shape=(6,6))
-        self.transformationMatrix: np.ndarray = np.zeros(shape=(6,6))
-        self.globalStiffnessMatrix: np.ndarray = np.zeros(shape=(6,6))
+        self.localStiffnessMatrix: np.ndarray = np.zeros(shape=(6, 6))
+        self.transformationMatrix: np.ndarray = np.zeros(shape=(6, 6))
+        self.globalStiffnessMatrix: np.ndarray = np.zeros(shape=(6, 6))
         try:
             self.length: float = self.calc_length()
             self.recalculateMatrices()
@@ -91,6 +91,9 @@ class Element:
         if isinstance(load, UniformDistributedLoad) or isinstance(load, VaryingDistributedLoad):
             load.cleanInputs()
         self.loads.append(load)
+
+    def clearLoads(self):
+        self.loads: list[StaticLoad] = []
 
     def addLoadInteractive(self):
         pass

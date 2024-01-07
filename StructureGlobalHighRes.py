@@ -1,7 +1,6 @@
-import math
-
 from Element import Element
 from ElementHelperFunctions import ElementHelper
+from Load import *
 from Node import Node
 from StructureGlobal import StructureGlobal
 
@@ -23,6 +22,7 @@ class StructureGlobalHighRes(StructureGlobal):
     def subdivSingleElem(self, element):
         numElems = int(element.length) + 1
         subElems, subNodes = self.subdivElem(element, numElems)
+        self.subDivElementLoads(element, subElems)
         return subElems, subNodes
 
     def subdivElem(self, element, numElems):
@@ -54,3 +54,43 @@ class StructureGlobalHighRes(StructureGlobal):
     def addSubNodes(self, subNodeList):
         for node in subNodeList:
             self.nodes.append(node)
+
+    def subDivElementLoads(self, element, subElems):
+        for load in element.loads:
+            minusdist = 0
+            plusdist = 0
+            for subElem in subElems:
+                subElem.clearLoads()
+                minusdist = plusdist
+                length = subElem.length
+                plusdist += length
+                if isinstance(load, PointLoadMember):
+                    if minusdist < load.location < plusdist:
+                        subElem.addLoad(PointLoadMember(load.magnitude, load.location-minusdist, angle=rad2degree(load.angle)))
+                        break
+                if isinstance(load, UniformDistributedLoad):
+                    if minusdist < load.start < plusdist:
+                        if minusdist < load.end < plusdist:
+                            subElem.addLoad(load)
+                        else:
+                            subElem.addLoad(UniformDistributedLoad(load.magnitude, load.start-minusdist, length, angle=rad2degree(load.angle)))
+                    elif minusdist < load.end < plusdist:
+                        subElem.addLoad(UniformDistributedLoad(load.magnitude, 0, load.end - minusdist, angle=rad2degree(load.angle)))
+                    elif load.start < minusdist and load.end > plusdist:
+                        subElem.addLoad(UniformDistributedLoad(load.magnitude, 0, length, angle=rad2degree(load.angle)))
+                if isinstance(load, VaryingDistributedLoad):
+                    if minusdist < load.start < plusdist:
+                        if minusdist < load.end < plusdist:
+                            subElem.addLoad(load)
+                        else:
+                            subElem.addLoad(
+                                VaryingDistributedLoad(load.magnitudeAtPoint(load.start),
+                                                       load.magnitudeAtPoint(plusdist),
+                                                       load.start - minusdist, length, angle=rad2degree(load.angle)))
+                    elif minusdist < load.end < plusdist:
+                        subElem.addLoad(
+                            VaryingDistributedLoad(load.magnitudeAtPoint(minusdist), load.magnitudeAtPoint(load.end), 0,
+                                                   load.end - minusdist, angle=rad2degree(load.angle)))
+                    elif load.start < minusdist and load.end > plusdist:
+                        VaryingDistributedLoad(load.magnitudeAtPoint(minusdist), load.magnitudeAtPoint(plusdist), 0,
+                                               length, angle=rad2degree(load.angle))

@@ -65,7 +65,7 @@ structure: StructureGlobalHighRes = StructureGlobalHighRes()
 structure.nodes = nodes
 structure.elements = elements
 structure.supports = supports
-structure.subdivAllElements()
+# structure.subdivAllElements()
 
 loads: list[StaticLoad] = []
 loads.append(Moment(50))
@@ -74,15 +74,16 @@ loads.append(PointLoadMember(100, 13, angle=0))
 loads.append(VaryingDistributedLoad(5*cos(20), 10*cos(20), 4, 14, angle=-90))
 loads.append(VaryingDistributedLoad(5*sin(20), 10*sin(20), 4, 14, angle=0))
 loads.append(VaryingDistributedLoad(5, 10, 4, 14, angle=-70))
-loads.append(UniformDistributedLoad(10, 8, 17, angle=-90))
+loads.append(UniformDistributedLoad(0.05, 8, 18, angle=-90))
 loads.append(TrapezoidalDistributedLoad([5, 13, 20], [13, 28, 28], angle=-90))
 loads.append(PointLoad(1000, -90))
 
 #TODO error when running following line check
-nodes[1].addLoad(loads[0])
-# elements[1].addLoad(loads[3])
+# nodes[1].addLoad(loads[0])
+elements[1].addLoad(loads[5])
 # nodes[11].addLoad(loads[4])
 
+structure.subdivAllElements()
 structure.runAnalysis()
 print(nodes[0].disp)
 # print(nodes[3].disp)
