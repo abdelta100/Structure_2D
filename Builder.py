@@ -55,7 +55,7 @@ loads.append(PointLoad(20, angle_degree=0))
 loads.append(PointLoadMember(50, 3, angle=-90))
 
 # Assign Loads to either element or node via .addLoad call
-elements[1].addLoad(loads[0])
+elements[1].addLoad(loads[1])
 nodes[1].addLoad(loads[0])
 
 # Run analysis

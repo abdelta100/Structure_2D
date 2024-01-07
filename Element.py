@@ -15,19 +15,23 @@ class Element:
         self._i_Node: Node | None = i
         self._j_Node: Node | None = j
         self.id = 0
-        self.length: float = self.calc_length()
         self.material: Material = DefaultMaterial()
         self.crossSection: CrossSection = DefaultRectangularCrossSection()
         self.E: float = self.material.elasticModulus
         self.I: float = self.crossSection.momentOfInertia
         self.A: float = self.crossSection.area
-        self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
         self.loads: list[StaticLoad] = []
         # TODO adds x or axial comp in nodeFEM
         self.node1FEM: PrincipleForce = PrincipleForce(0, 0, 0)
         self.node2FEM: PrincipleForce = PrincipleForce(0, 0, 0)
-        self.transformationMatrix: np.ndarray = self.elementTransformationMatrix()
-        self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
+        self.localStiffnessMatrix: np.ndarray = np.zeros(shape=(6,6))
+        self.transformationMatrix: np.ndarray = np.zeros(shape=(6,6))
+        self.globalStiffnessMatrix: np.ndarray = np.zeros(shape=(6,6))
+        try:
+            self.length: float = self.calc_length()
+            self.recalculateMatrices()
+        except:
+            pass
         # TODO add something about self weight
 
     def elementStiffnessMatrix(self):
@@ -75,12 +79,18 @@ class Element:
 
         return transformation_matrix
 
-    def addLoad(self, load: StaticLoad):
+    def addLoad2(self, load: StaticLoad):
         self.loads.append(load)
         load.beamLength = self.length
         if isinstance(load, PointLoadMember):
             load.location = load.location = load.beamLength
         # TODO needs work to define order of precedence. Add load first or select member first?
+
+    def addLoad(self, load: StaticLoad):
+        load.beamLength = self.length
+        if isinstance(load, UniformDistributedLoad) or isinstance(load, VaryingDistributedLoad):
+            load.cleanInputs()
+        self.loads.append(load)
 
     def addLoadInteractive(self):
         pass
@@ -115,12 +125,6 @@ class Element:
         globalStiffnessMatrix = np.matmul(self.transformationMatrix,
                                           np.matmul(self.localStiffnessMatrix, self.transformationMatrix.T))
         return globalStiffnessMatrix
-
-    def addLoad(self, load: StaticLoad):
-        load.beamLength = self.length
-        if isinstance(load, UniformDistributedLoad) or isinstance(load, VaryingDistributedLoad):
-            load.cleanInputs()
-        self.loads.append(load)
 
     def setMaterial(self, material: Material):
         self.material = material

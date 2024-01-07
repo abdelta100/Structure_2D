@@ -8,6 +8,7 @@ from Load import *
 from Material import TestMaterial, DefaultMaterial
 from Node import Node
 from StructureGlobal import StructureGlobal
+from StructureGlobalHighRes import StructureGlobalHighRes
 from Support import Support
 from StructureGlobalHelperFunctions import StructureGlobalHelper
 
@@ -29,7 +30,7 @@ nodes.append(Node(20, 0, 3))
 
 # mater=NewMaterial(name="Custom", density=2000, elastic_mod=200000000, poisson_ratio=.33,comp_strength=3000)
 mater = TestMaterial(E=2E11)
-section = TestRectangularCrossSection(A=(0.05), I=(0.0001))
+section = TestRectangularCrossSection(A=(0.05), I=(0.05))
 
 elements: list[Element] = []
 #TODO add a kwarg or something for direct assigning material and section in instance call
@@ -51,18 +52,20 @@ elements.append(Element(nodes[2], nodes[3]))
 # elements.append(Element(nodes[12], nodes[9]))
 
 
-for element in elements:
-    element.setMaterial(mater)
-    element.setCrossSection(section)
+# for element in elements:
+#     element.setMaterial(mater)
+#     element.setCrossSection(section)
 
 supports: list[Support] = []
 supports.append(Support.init_from_node(nodes[0], 0, support_type='Fixed'))
 supports.append(Support.init_from_node(nodes[3], 1, support_type='fixed'))
 
-structure: StructureGlobal = StructureGlobal()
+# structure: StructureGlobal = StructureGlobal()
+structure: StructureGlobalHighRes = StructureGlobalHighRes()
 structure.nodes = nodes
 structure.elements = elements
 structure.supports = supports
+structure.subdivAllElements()
 
 loads: list[StaticLoad] = []
 loads.append(Moment(50))
@@ -86,15 +89,9 @@ print(nodes[0].disp)
 print(nodes[1].netLoad)
 print(supports[0].reactions)
 print(supports[1].reactions)
-x, y = elements[1].calcBendingMomentDiagram()
-
-allElemDisp=StructureGlobalHelper.plotNodalDisplacementGraph(structure)
-# print(allElemDisp)
-for element in allElemDisp:
-    plt.plot(element[0], element[1], '-b')
-#plt.plot(x, y)
-#plt.plot([0, elements[1].length], [0, 0])
-plt.show()
+# x, y = elements[1].calcBendingMomentDiagram()
+spr=StructureGlobalHelper
+spr.graphNodalDisplacementGraph(structure=structure)
 
 # TODO Fix FEM directions, needs to be opposite applied load, and the directions need to be reversed again when
 #  transferring to nodes

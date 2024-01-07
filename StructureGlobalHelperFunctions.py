@@ -1,4 +1,5 @@
 from StructureGlobal import StructureGlobal
+import matplotlib.pyplot as plt
 
 
 class StructureGlobalHelper:
@@ -22,6 +23,12 @@ class StructureGlobalHelper:
 
             allElemDisp.append([[x1, x2], [y1, y2]])
         return allElemDisp
-
-
-        pass
+    @staticmethod
+    def graphNodalDisplacementGraph(structure):
+        allElemDisp = StructureGlobalHelper.plotNodalDisplacementGraph(structure)
+        # print(allElemDisp)
+        for element in allElemDisp:
+            plt.plot(element[0], element[1], '-b')
+        # plt.plot(x, y)
+        # plt.plot([0, elements[1].length], [0, 0])
+        plt.show()
