@@ -90,6 +90,7 @@ class UniformDistributedLoad(StaticLoad):
         if self.start <= point <= self.end:
             magnitude = {"perpendicular": self.magnitude * math.sin(self.angle),
                          "parallel": self.magnitude * math.cos(self.angle)}
+            magnitude["abs"] = math.sqrt(magnitude["perpendicular"] ** 2 + magnitude["parallel"] ** 2)
             return magnitude[axis]
 
         else:
@@ -181,6 +182,7 @@ class PointLoadMember(PointLoad):
         if point == self.location:
             magnitude = {"perpendicular": self.magnitude * math.sin(self.angle),
                          "parallel": self.magnitude * math.cos(self.angle)}
+            magnitude["abs"] = math.sqrt(magnitude["perpendicular"] ** 2 + magnitude["parallel"] ** 2)
             return magnitude[axis]
         else:
             return 0
@@ -259,7 +261,6 @@ class VaryingDistributedLoad(StaticLoad):
         iNodeFer = PrincipleForce(A1, V1, R1)
         jNodeFer = PrincipleForce(A2, V2, R2)
 
-
         # Temporary rectangular load to handle rectangular portion calculation
         temprect = UniformDistributedLoad(self.start_magnitude, self.start, self.end, angle=rad2degree(self.angle))
         temprect.beamLength = self.beamLength
@@ -288,6 +289,7 @@ class VaryingDistributedLoad(StaticLoad):
                          "parallel": self.start_magnitude * math.cos(self.angle) + (
                                  (point - self.start) * (self.end_magnitude - self.start_magnitude) * math.cos(
                              self.angle) / (self.end - self.start))}
+            magnitude["abs"] = math.sqrt(magnitude["perpendicular"] ** 2 + magnitude["parallel"] ** 2)
             return magnitude[axis]
 
         else:
@@ -349,6 +351,8 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
         self.loadClass = "Trapezoidal Distributed Load"
         self.angle = degree2rad(angle)
         self.VDLset: list[VaryingDistributedLoad] = []
+        self.location_list=location_list
+        self.magnitude_lst=magnitude_list
         self.inputIntegrityCheck(location_list, magnitude_list)
         self.initializeVDLset(location_list, magnitude_list)
 

@@ -8,7 +8,7 @@ from StructureGlobal import StructureGlobal
 class StructureGlobalHighRes(StructureGlobal):
     def __init__(self):
         super().__init__()
-        self.res = 1  # unit resolution
+        self.res = 5  # unit resolution
 
     def subdivAllElements(self):
         subElems: list[Element] = []
@@ -20,7 +20,7 @@ class StructureGlobalHighRes(StructureGlobal):
         self.elements = subElems
 
     def subdivSingleElem(self, element):
-        numElems = int(element.length) + 1
+        numElems = round(element.length/self.res)+1
         subElems, subNodes = self.subdivElem(element, numElems)
         self.subDivElementLoads(element, subElems)
         return subElems, subNodes
@@ -66,31 +66,62 @@ class StructureGlobalHighRes(StructureGlobal):
                 plusdist += length
                 if isinstance(load, PointLoadMember):
                     if minusdist < load.location < plusdist:
-                        subElem.addLoad(PointLoadMember(load.magnitude, load.location-minusdist, angle=rad2degree(load.angle)))
+                        subElem.addLoad(
+                            PointLoadMember(load.magnitude, load.location - minusdist, angle=rad2degree(load.angle)))
                         break
-                if isinstance(load, UniformDistributedLoad):
+                if isinstance(load, MomentMember):
+                    if minusdist < load.location < plusdist:
+                        subElem.addLoad(
+                            MomentMember(load.magnitude, load.location - minusdist))
+                        break
+                elif isinstance(load, UniformDistributedLoad):
                     if minusdist < load.start < plusdist:
                         if minusdist < load.end < plusdist:
                             subElem.addLoad(load)
                         else:
-                            subElem.addLoad(UniformDistributedLoad(load.magnitude, load.start-minusdist, length, angle=rad2degree(load.angle)))
+                            subElem.addLoad(UniformDistributedLoad(load.magnitude, load.start - minusdist, length,
+                                                                   angle=rad2degree(load.angle)))
                     elif minusdist < load.end < plusdist:
-                        subElem.addLoad(UniformDistributedLoad(load.magnitude, 0, load.end - minusdist, angle=rad2degree(load.angle)))
+                        subElem.addLoad(UniformDistributedLoad(load.magnitude, 0, load.end - minusdist,
+                                                               angle=rad2degree(load.angle)))
                     elif load.start < minusdist and load.end > plusdist:
                         subElem.addLoad(UniformDistributedLoad(load.magnitude, 0, length, angle=rad2degree(load.angle)))
-                if isinstance(load, VaryingDistributedLoad):
+                elif isinstance(load, TrapezoidalDistributedLoad):
+                    if minusdist < load.location_list[0] < plusdist:
+                        if minusdist < load.location_list[-1] < plusdist:
+                            subElem.addLoad(load)
+                        else:
+                            subElem.addLoad(
+                                TrapezoidalDistributedLoad([load.location_list[0] - minusdist, length],
+                                                           [load.magnitudeAtPoint(load.location_list[0], axis='abs'),
+                                                            load.magnitudeAtPoint(load.location_list[0] + length, axis='abs')], angle=rad2degree(load.angle)))
+                    elif minusdist < load.location_list[-1] < plusdist:
+                        subElem.addLoad(
+                            TrapezoidalDistributedLoad([0, load.location_list[-1]-minusdist],
+                                                       [load.magnitudeAtPoint(minusdist, axis='abs'),
+                                                        load.magnitudeAtPoint(load.location_list[-1], axis='abs')],
+                                                       angle=rad2degree(load.angle)))
+
+                    elif load.location_list[0] < minusdist and load.location_list[-1] > plusdist:
+                        subElem.addLoad(
+                            TrapezoidalDistributedLoad([0, length],
+                                                       [load.magnitudeAtPoint(minusdist, axis='abs'),
+                                                        load.magnitudeAtPoint(plusdist, axis='abs')],
+                                                       angle=rad2degree(load.angle)))
+
+                elif isinstance(load, VaryingDistributedLoad):
                     if minusdist < load.start < plusdist:
                         if minusdist < load.end < plusdist:
                             subElem.addLoad(load)
                         else:
                             subElem.addLoad(
-                                VaryingDistributedLoad(load.magnitudeAtPoint(load.start),
-                                                       load.magnitudeAtPoint(plusdist),
+                                VaryingDistributedLoad(load.magnitudeAtPoint(load.start, axis='abs'),
+                                                       load.magnitudeAtPoint(plusdist, axis='abs'),
                                                        load.start - minusdist, length, angle=rad2degree(load.angle)))
                     elif minusdist < load.end < plusdist:
                         subElem.addLoad(
-                            VaryingDistributedLoad(load.magnitudeAtPoint(minusdist), load.magnitudeAtPoint(load.end), 0,
+                            VaryingDistributedLoad(load.magnitudeAtPoint(minusdist, axis='abs'), load.magnitudeAtPoint(load.end, axis='abs'), 0,
                                                    load.end - minusdist, angle=rad2degree(load.angle)))
                     elif load.start < minusdist and load.end > plusdist:
-                        VaryingDistributedLoad(load.magnitudeAtPoint(minusdist), load.magnitudeAtPoint(plusdist), 0,
+                        VaryingDistributedLoad(load.magnitudeAtPoint(minusdist, axis='abs'), load.magnitudeAtPoint(plusdist, axis='abs'), 0,
                                                length, angle=rad2degree(load.angle))
