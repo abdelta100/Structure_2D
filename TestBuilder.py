@@ -15,10 +15,10 @@ from StructureGlobalHelperFunctions import StructureGlobalHelper
 nodes: list[Node] = []
 # TODO add a idnum verifier and corrector in structure global
 nodes.append(Node(0, 0, 0))
-nodes.append(Node(0, 20, 1))
-nodes.append(Node(0, 40, 2))
-nodes.append(Node(20, 40, 3))
-nodes.append(Node(20, 20, 4))
+nodes.append(Node(0, 10, 1))
+nodes.append(Node(0, 20, 2))
+nodes.append(Node(20, 20, 3))
+nodes.append(Node(20, 10, 4))
 nodes.append(Node(20, 0, 5))
 # nodes.append(Node(0, 60, 6))
 # nodes.append(Node(20, 60, 7))
@@ -29,8 +29,8 @@ nodes.append(Node(20, 0, 5))
 # nodes.append(Node(20, 100, 12))
 
 # mater=NewMaterial(name="Custom", density=2000, elastic_mod=200000000, poisson_ratio=.33,comp_strength=3000)
-mater = TestMaterial(E=2E11)
-section = TestRectangularCrossSection(A=(5), I=(5))
+mater = TestMaterial(E=449570.7)
+section = TestRectangularCrossSection(A=(0.0625), I=(3.255E-4))
 
 elements: list[Element] = []
 #TODO add a kwarg or something for direct assigning material and section in instance call
@@ -73,11 +73,11 @@ structure.supports = supports
 loads: list[StaticLoad] = []
 loads.append(Moment(50))
 loads.append(MomentMember(124, 10))
-loads.append(PointLoadMember(8000, 3.5, angle=-90))
+loads.append(PointLoadMember(8, 3.5, angle=-90))
 loads.append(VaryingDistributedLoad(0.5*cos(20), 1*cos(20), 4, 14, angle=-90))
 loads.append(VaryingDistributedLoad(5*sin(20), 10*sin(20), 4, 14, angle=0))
-loads.append(VaryingDistributedLoad(5, 10, 4, 10, angle=-70))
-loads.append(UniformDistributedLoad(8000, 2, 5, angle=-90))
+loads.append(VaryingDistributedLoad(5, 10, 4, 10, angle=-90))
+loads.append(UniformDistributedLoad(8/3, 2, 5, angle=-90))
 loads.append(TrapezoidalDistributedLoad([5, 13, 20], [0.13, 0.28, 0.28], angle=-90))
 loads.append(PointLoad(100000, 0))
 
