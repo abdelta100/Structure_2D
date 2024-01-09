@@ -8,7 +8,7 @@ from StructureGlobal import StructureGlobal
 class StructureGlobalHighRes(StructureGlobal):
     def __init__(self):
         super().__init__()
-        self.res = 5  # unit resolution
+        self.res = 1  # unit resolution
 
     def subdivAllElements(self):
         subElems: list[Element] = []

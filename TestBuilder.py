@@ -16,10 +16,10 @@ nodes: list[Node] = []
 # TODO add a idnum verifier and corrector in structure global
 nodes.append(Node(0, 0, 0))
 nodes.append(Node(0, 20, 1))
-nodes.append(Node(20, 20, 2))
-nodes.append(Node(20, 0, 3))
-nodes.append(Node(40, 20, 4))
-nodes.append(Node(40, 0, 5))
+nodes.append(Node(0, 40, 2))
+nodes.append(Node(20, 40, 3))
+nodes.append(Node(20, 20, 4))
+nodes.append(Node(20, 0, 5))
 # nodes.append(Node(0, 60, 6))
 # nodes.append(Node(20, 60, 7))
 # nodes.append(Node(0, 80, 8))
@@ -37,7 +37,7 @@ elements: list[Element] = []
 elements.append(Element(nodes[0], nodes[1]))
 elements.append(Element(nodes[1], nodes[2]))
 elements.append(Element(nodes[2], nodes[3]))
-elements.append(Element(nodes[2], nodes[4]))
+elements.append(Element(nodes[3], nodes[4]))
 elements.append(Element(nodes[4], nodes[5]))
 # elements.append(Element(nodes[1], nodes[4]))
 # elements.append(Element(nodes[4], nodes[5]))
@@ -54,17 +54,17 @@ elements.append(Element(nodes[4], nodes[5]))
 # elements.append(Element(nodes[12], nodes[9]))
 
 
-for element in elements:
-    element.setMaterial(mater)
-    element.setCrossSection(section)
+# for element in elements:
+#     element.setMaterial(mater)
+#     element.setCrossSection(section)
 
 supports: list[Support] = []
 supports.append(Support.init_from_node(nodes[0], 0, support_type='Fixed'))
-supports.append(Support.init_from_node(nodes[3], 1, support_type='fixed'))
-supports.append(Support.init_from_node(nodes[5], 2, support_type='fixed'))
+supports.append(Support.init_from_node(nodes[5], 1, support_type='fixed'))
 
-# structure: StructureGlobal = StructureGlobal()
-structure: StructureGlobalHighRes = StructureGlobalHighRes()
+
+structure: StructureGlobal = StructureGlobal()
+# structure: StructureGlobalHighRes = StructureGlobalHighRes()
 structure.nodes = nodes
 structure.elements = elements
 structure.supports = supports
@@ -76,20 +76,20 @@ loads.append(MomentMember(124, 10))
 loads.append(PointLoadMember(10000, 10, angle=-90))
 loads.append(VaryingDistributedLoad(0.5*cos(20), 1*cos(20), 4, 14, angle=-90))
 loads.append(VaryingDistributedLoad(5*sin(20), 10*sin(20), 4, 14, angle=0))
-loads.append(VaryingDistributedLoad(5, 10, 4, 14, angle=-70))
-loads.append(UniformDistributedLoad(8000, 8, 18, angle=90))
+loads.append(VaryingDistributedLoad(5, 10, 4, 10, angle=-70))
+loads.append(UniformDistributedLoad(8000, 8, 18, angle=-90))
 loads.append(TrapezoidalDistributedLoad([5, 13, 20], [0.13, 0.28, 0.28], angle=-90))
 loads.append(PointLoad(100000, 0))
 
 #TODO error when running following line check
 # nodes[1].addLoad(loads[0])
-elements[1].addLoad(loads[2])
+elements[2].addLoad(loads[6])
 # nodes[1].addLoad(loads[-1])
 
-structure.subdivAllElements()
+# structure.subdivAllElements()
 structure.runAnalysis()
-print(nodes[0].disp)
-# print(nodes[3].disp)
+print(nodes[1].disp)
+# print(nodes[18].disp)
 print(nodes[1].netLoad)
 print(supports[0].reactions)
 print(supports[1].reactions)

@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 class StructureGlobalHelper:
     @staticmethod
     def plotNodalDisplacementGraph(structure: StructureGlobal):
-        DxScale = 100
-        DyScale = 300
+        DxScale = 10
+        DyScale = 30
         RxyScale = 1
 
         allElemDisp=[]

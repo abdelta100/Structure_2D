@@ -126,6 +126,7 @@ class StructureGlobal:
         origOrderDisplacement=np.matmul(np.linalg.inv(permutationMatrix), orderedDispVector)
         for node in self.nodes:
             tempdisp=origOrderDisplacement[node.idnum*self.dof:(node.idnum+1)*self.dof]
+            # transformedtemdisp=np.matmul(nod)
             node.disp["Dx"]=tempdisp[0]
             node.disp["Dy"] = tempdisp[1]
             node.disp["Rxy"] = tempdisp[2]
