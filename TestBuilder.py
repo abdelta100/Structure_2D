@@ -73,17 +73,17 @@ structure.supports = supports
 loads: list[StaticLoad] = []
 loads.append(Moment(50))
 loads.append(MomentMember(124, 10))
-loads.append(PointLoadMember(10000, 10, angle=-90))
+loads.append(PointLoadMember(8000, 3.5, angle=-90))
 loads.append(VaryingDistributedLoad(0.5*cos(20), 1*cos(20), 4, 14, angle=-90))
 loads.append(VaryingDistributedLoad(5*sin(20), 10*sin(20), 4, 14, angle=0))
 loads.append(VaryingDistributedLoad(5, 10, 4, 10, angle=-70))
-loads.append(UniformDistributedLoad(8000, 8, 18, angle=-90))
+loads.append(UniformDistributedLoad(8000, 2, 5, angle=-90))
 loads.append(TrapezoidalDistributedLoad([5, 13, 20], [0.13, 0.28, 0.28], angle=-90))
 loads.append(PointLoad(100000, 0))
 
 #TODO error when running following line check
 # nodes[1].addLoad(loads[0])
-elements[2].addLoad(loads[6])
+elements[2].addLoad(loads[2])
 # nodes[1].addLoad(loads[-1])
 
 # structure.subdivAllElements()

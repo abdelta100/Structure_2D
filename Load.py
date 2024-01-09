@@ -69,9 +69,9 @@ class UniformDistributedLoad(StaticLoad):
         dN1 = mid
         dN2 = length - mid
         R1 = -(dN1 * (dN2 ** 2) + ((dN1 - 2 * dN2) * dist ** 2) / 12) * (perp_magnitude * dist) / length ** 2
-        R2 = +(dN2 * (dN1 ** 2) + ((dN2 - 2 * dN1) * dist ** 2) / 12) * (perp_magnitude * dist) / length ** 2
+        R2 = (dN2 * (dN1 ** 2) + ((dN2 - 2 * dN1) * dist ** 2) / 12) * (perp_magnitude * dist) / length ** 2
 
-        V2 = -(R1 + R2 + self.calcTotal() * math.sin(self.angle) * mid) / length
+        V2 = (R1 + R2 - self.calcTotal() * math.sin(self.angle) * mid) / length
         V1 = -self.calcTotal() * math.sin(self.angle) - V2
 
         # TODO maybe yoou dont need the centroid for the Axial part but the mean? or the thingy that splits a graph into
@@ -164,8 +164,8 @@ class PointLoadMember(PointLoad):
 
         V1 = -(3 * dN1 + dN2) * perp_magnitude * dN2 ** 2 / length ** 3
         V2 = -(3 * dN2 + dN1) * perp_magnitude * dN1 ** 2 / length ** 3
-        R1 = perp_magnitude * dN1 * dN2 ** 2 / length ** 2
-        R2 = -perp_magnitude * dN2 * dN1 ** 2 / length ** 2
+        R1 = -perp_magnitude * dN1 * dN2 ** 2 / length ** 2
+        R2 = perp_magnitude * dN2 * dN1 ** 2 / length ** 2
 
         par_magnitude = self.magnitude * math.cos(self.angle)
 
