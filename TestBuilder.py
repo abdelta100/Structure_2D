@@ -54,17 +54,17 @@ elements.append(Element(nodes[4], nodes[5]))
 # elements.append(Element(nodes[12], nodes[9]))
 
 
-# for element in elements:
-#     element.setMaterial(mater)
-#     element.setCrossSection(section)
+for element in elements:
+    element.setMaterial(mater)
+    element.setCrossSection(section)
 
 supports: list[Support] = []
 supports.append(Support.init_from_node(nodes[0], 0, support_type='Fixed'))
 supports.append(Support.init_from_node(nodes[5], 1, support_type='fixed'))
 
 
-structure: StructureGlobal = StructureGlobal()
-# structure: StructureGlobalHighRes = StructureGlobalHighRes()
+# structure: StructureGlobal = StructureGlobal()
+structure: StructureGlobalHighRes = StructureGlobalHighRes()
 structure.nodes = nodes
 structure.elements = elements
 structure.supports = supports
@@ -74,19 +74,19 @@ loads: list[StaticLoad] = []
 loads.append(Moment(50))
 loads.append(MomentMember(124, 10))
 loads.append(PointLoadMember(8, 3.5, angle=-90))
-loads.append(VaryingDistributedLoad(0.5*cos(20), 1*cos(20), 4, 14, angle=-90))
-loads.append(VaryingDistributedLoad(5*sin(20), 10*sin(20), 4, 14, angle=0))
-loads.append(VaryingDistributedLoad(5, 10, 4, 10, angle=-90))
+loads.append(VaryingDistributedLoad(0.5*cos(degree2rad(20)), 1*cos(degree2rad(20)), 4, 14, angle=-90))
+loads.append(VaryingDistributedLoad(5*sin(degree2rad(20)), 10*sin(degree2rad(20)), 4, 14, angle=0))
+loads.append(VaryingDistributedLoad(5, 10, 4, 14, angle=-70))
 loads.append(UniformDistributedLoad(8/3, 2, 5, angle=-90))
 loads.append(TrapezoidalDistributedLoad([5, 13, 20], [0.13, 0.28, 0.28], angle=-90))
 loads.append(PointLoad(100000, 0))
 
 #TODO error when running following line check
 # nodes[1].addLoad(loads[0])
-elements[2].addLoad(loads[2])
+elements[2].addLoad(loads[5])
 # nodes[1].addLoad(loads[-1])
 
-# structure.subdivAllElements()
+structure.subdivAllElements()
 structure.runAnalysis()
 print(nodes[1].disp)
 # print(nodes[18].disp)
@@ -104,3 +104,4 @@ spr.graphNodalDisplacementGraph(structure=structure)
 
 # TODO add a function that prints model summary, maybe use __repr__ or something for individual elements
 # TODO n order analysis
+# TODO Big probelm regarding MOMENTS AND DIRECTIONS etc

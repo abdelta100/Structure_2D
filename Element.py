@@ -45,12 +45,14 @@ class Element:
         pt3 = 6 * (self.E * self.I) / self.length ** 2
         pt4 = 4 * (self.E * self.I) / self.length
 
-        stiffness_matrix = np.array([[pt1, 0, 0, -pt1, 0, 0],
-                                     [0, pt2, pt3, 0, -pt2, pt3],
-                                     [0, pt3, pt4, 0, -pt3, pt4 / 2],
-                                     [-pt1, 0, 0, pt1, 0, 0],
-                                     [0, -pt2, -pt3, 0, pt2, -pt3],
-                                     [0, pt3, pt4 / 2, 0, -pt3, pt4]], dtype=np.float64)
+        stiffness_matrix = np.array(
+            [[pt1, 0, 0, -pt1, 0, 0],
+                    [0, pt2, pt3, 0, -pt2, pt3],
+                    [0, pt3, pt4, 0, -pt3, pt4 / 2],
+                    [-pt1, 0, 0, pt1, 0, 0],
+                    [0, -pt2, -pt3, 0, pt2, -pt3],
+                    [0, pt3, pt4 / 2, 0, -pt3, pt4]],
+            dtype=np.float64)
 
         return stiffness_matrix
 
@@ -125,8 +127,8 @@ class Element:
         self.globalStiffnessMatrix = self.local2globalStiffness()
 
     def local2globalStiffness(self):
-        globalStiffnessMatrix = np.matmul(self.transformationMatrix,
-                                          np.matmul(self.localStiffnessMatrix, self.transformationMatrix.T))
+        globalStiffnessMatrix = np.matmul(self.transformationMatrix.T,
+                                          np.matmul(self.localStiffnessMatrix, self.transformationMatrix))
         return globalStiffnessMatrix
 
     def setMaterial(self, material: Material):

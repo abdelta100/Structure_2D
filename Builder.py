@@ -39,7 +39,7 @@ for element in elements:
 supports: list[Support] = []
 # Use static method from support class to create a support on a predefined node. Takes predefined node,
 # user given support number (different from node.idnum), and support type string (of three types for now)
-supports.append(Support.init_from_node(nodes[0], 0, support_type='Fixed'))
+supports.append(Support.init_from_node(nodes[0], 0, support_type='fixed'))
 supports.append(Support.init_from_node(nodes[3], 1, support_type='fixed'))
 
 # Initilalize Structure Object and assign nodes, elements and supports to it
@@ -52,11 +52,11 @@ structure.supports = supports
 loads: list[StaticLoad] = []
 # Each load class takes different input parameters, see documentation
 loads.append(PointLoad(20, angle_degree=0))
-loads.append(PointLoadMember(50, 3, angle=-90))
+loads.append(PointLoadMember(50, 10, angle=0))
 
 # Assign Loads to either element or node via .addLoad call
 elements[1].addLoad(loads[1])
-nodes[1].addLoad(loads[0])
+# nodes[1].addLoad(loads[0])
 
 # Run analysis
 structure.runAnalysis()

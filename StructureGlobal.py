@@ -26,34 +26,36 @@ class StructureGlobal:
             j_node = element.j_Node.idnum
             for index, i in enumerate((i_node, j_node)):
                 for index2, j in enumerate((i_node, j_node)):
-                    globalStiffnessMatrix[i * self.dof:(i + 1) * self.dof, j * self.dof:(j + 1) * self.dof] += element.globalStiffnessMatrix[
+                    globalStiffnessMatrix[i * self.dof:(i + 1) * self.dof,
+                    j * self.dof:(j + 1) * self.dof] += element.globalStiffnessMatrix[
                                                         index * self.dof:(index + 1) * self.dof,
                                                         index2 * self.dof:(index2 + 1) * self.dof]
-        #TODO provide option to return just the stiffness witout running the solver, or maybe a model build?
-        self.stiffnessMatrix=globalStiffnessMatrix
+        # TODO provide option to return just the stiffness witout running the solver, or maybe a model build?
+        self.stiffnessMatrix = globalStiffnessMatrix
         return globalStiffnessMatrix
 
     def createPermutationMatrix(self):
-        #fixity vector
-        disp_vector=np.zeros(shape=(len(self.nodes)*self.dof))
+        # fixity vector
+        disp_vector = np.zeros(shape=(len(self.nodes) * self.dof))
         for support in self.supports:
-            #edit Line when going 3D
-            disp_vector[support.idnum*self.dof: (support.idnum+1)*self.dof]=np.array([support.xActive, support.yActive, support.RxyActive])
-        perm_order=np.argsort(disp_vector)
-        permutation_matrix=np.zeros(shape=(disp_vector.shape[0], disp_vector.shape[0]))
+            # edit Line when going 3D
+            disp_vector[support.idnum * self.dof: (support.idnum + 1) * self.dof] = np.array(
+                [support.xActive, support.yActive, support.RxyActive])
+        perm_order = np.argsort(disp_vector)
+        permutation_matrix = np.zeros(shape=(disp_vector.shape[0], disp_vector.shape[0]))
         for i, j in zip(range(len(disp_vector)), perm_order):
             permutation_matrix[i, j] = 1
-        return permutation_matrix, np.matmul(permutation_matrix,disp_vector)
+        return permutation_matrix, np.matmul(permutation_matrix, disp_vector)
 
     def _solver(self):
-        #TODO handle single beam edge case or similar
-        #TODO permutation matrix needs to be created by factoring in Supports not just nodes
-        permutationMatrix, permutatedOrder=self.createPermutationMatrix()
-        globalStiffness=self.createGlobalStiffnessMatrix()
-        globalStiffness=matrixStabilityCheck(globalStiffness)
-        self.stiffnessMatrix=globalStiffness
-        permutedMatrix=np.matmul(permutationMatrix, np.matmul(globalStiffness, permutationMatrix.T))
-        fixed_index=np.where(permutatedOrder==1)[0][0]
+        # TODO handle single beam edge case or similar
+        # TODO permutation matrix needs to be created by factoring in Supports not just nodes
+        permutationMatrix, permutatedOrder = self.createPermutationMatrix()
+        globalStiffness = self.createGlobalStiffnessMatrix()
+        globalStiffness = matrixStabilityCheck(globalStiffness)
+        self.stiffnessMatrix = globalStiffness
+        permutedMatrix = np.matmul(permutationMatrix, np.matmul(globalStiffness, permutationMatrix.T))
+        fixed_index = np.where(permutatedOrder == 1)[0][0]
 
         # | UU      UK |
         # | KU      KK |
@@ -66,16 +68,15 @@ class StructureGlobal:
         # | FK |
         # | FU |
 
-
-        permutatedAppliedLoads=self.orderAppliedLoads(permutationMatrix)
-        FK=permutatedAppliedLoads[:fixed_index]
-        FU=permutatedAppliedLoads[fixed_index:]
+        permutatedAppliedLoads = self.orderAppliedLoads(permutationMatrix)
+        FK = permutatedAppliedLoads[:fixed_index]
+        FU = permutatedAppliedLoads[fixed_index:]
 
         # | DU |
         # | DK |
 
-        #TODO Use actual displacement case here instead of assuming zero
-        orderedDisplacementVector=np.zeros(shape=permutatedAppliedLoads.shape)
+        # TODO Use actual displacement case here instead of assuming zero
+        orderedDisplacementVector = np.zeros(shape=permutatedAppliedLoads.shape)
         DU = orderedDisplacementVector[:fixed_index]
         DK = orderedDisplacementVector[fixed_index:]
 
@@ -84,20 +85,17 @@ class StructureGlobal:
         # DU = (FK - UK*DK) * UU.inv
         # FU = KU*DU + KK * DK
 
-        DU = np.linalg.solve(UU, FK-np.matmul(UK, DK))
-        #DU = np.matmul(FK-np.matmul(UK, DK), np.linalg.inv(UU))
+        DU = np.linalg.solve(UU, FK - np.matmul(UK, DK))
+        # DU = np.matmul(FK-np.matmul(UK, DK), np.linalg.inv(UU))
         FU = np.matmul(KU, DU) + np.matmul(KK, DK)
 
-        filledDisplacementVector=np.concatenate((DU, DK), axis=0)
-        filledForceVector=np.concatenate((FK, FU), axis=0)
+        filledDisplacementVector = np.concatenate((DU, DK), axis=0)
+        filledForceVector = np.concatenate((FK, FU), axis=0)
 
         self.pushDisplacements(filledDisplacementVector, permutationMatrix)
         self.pushReactions(filledForceVector, permutationMatrix)
 
-
-        #TODO involve displacement vector
-
-
+        # TODO involve displacement vector
 
     def transferLoadstoNodes(self):
         for element in self.elements:
@@ -111,31 +109,32 @@ class StructureGlobal:
         self.transferLoadstoNodes()
         self.collectNodalLoads()
         # unordered applied load vector
-        appLoads = np.zeros(shape=len(self.nodes)*3)
+        appLoads = np.zeros(shape=len(self.nodes) * 3)
         for node in self.nodes:
             # TODO reconcile self.dof and len netload,
-            #both should be same but different variables are referenced may cause issue
-            appLoads[node.idnum*self.dof:node.idnum*self.dof + len(node.netLoad)] = node.netLoad
+            # both should be same but different variables are referenced may cause issue
+            appLoads[node.idnum * self.dof:node.idnum * self.dof + len(node.netLoad)] = node.netLoad
 
-        orderedLoads=np.matmul(permutationMatrix, appLoads)
+        orderedLoads = np.matmul(permutationMatrix, appLoads)
         return orderedLoads
 
     def pushDisplacements(self, orderedDispVector, permutationMatrix):
         # TODO future issue here. If my internal nodes are not fixed in some dof, I might have to transfer my nodal
         #  loads (received from analysis) back to nodes, and draw sfd etc from that
-        origOrderDisplacement=np.matmul(np.linalg.inv(permutationMatrix), orderedDispVector)
+        origOrderDisplacement = np.matmul(permutationMatrix.T, orderedDispVector)
         for node in self.nodes:
-            tempdisp=origOrderDisplacement[node.idnum*self.dof:(node.idnum+1)*self.dof]
+            tempdisp = origOrderDisplacement[node.idnum * self.dof:(node.idnum + 1) * self.dof]
             # transformedtemdisp=np.matmul(nod)
-            node.disp["Dx"]=tempdisp[0]
+            node.disp["Dx"] = tempdisp[0]
             node.disp["Dy"] = tempdisp[1]
             node.disp["Rxy"] = tempdisp[2]
 
     def pushReactions(self, orderedForceVector, permutationMatrix):
-        #TODO figure out force/reaction push details since i'm not pushing anything to nodes here, just supports
-        origOrderForce = np.matmul(np.linalg.inv(permutationMatrix), orderedForceVector)
+        # TODO figure out force/reaction push details since i'm not pushing anything to nodes here, just supports
+        origOrderForce = np.matmul(permutationMatrix.T, orderedForceVector)
+
         for support in self.supports:
-            tempforce = origOrderForce[support.idnum*self.dof:(support.idnum+1)*self.dof]
+            tempforce = origOrderForce[support.idnum * self.dof:(support.idnum + 1) * self.dof]
             support.reactions["Fx"] = tempforce[0]
             support.reactions["Fy"] = tempforce[1]
             support.reactions["Mxy"] = tempforce[2]
@@ -145,50 +144,50 @@ class StructureGlobal:
         self._solver()
 
     def findAllNodalForcesPostAnalysis(self):
-        nodeAdjacencyMatrix, elemNodeIntersection=self.createElementNodeIntersectionMatrix()
-        #Source Nodes for bfs
-        initialNodes=[]
+        nodeAdjacencyMatrix, elemNodeIntersection = self.createElementNodeIntersectionMatrix()
+        # Source Nodes for bfs
+        initialNodes = []
         for support in self.supports:
-            #TODO Phase the following line out because too bulky
+            # TODO Phase the following line out because too bulky
             initialNodes.append(support)
-
 
         # TODO implement multisource breadth first search or something to traverse all nodes by and find nodal loads
         #  via elements
         pass
 
     def createElementNodeIntersectionMatrix(self):
-        nodeAdjacency=np.zeros(shape=(len(self.nodes), len(self.nodes)))
-        elemNodeIntersection=np.zeros(shape=(len(self.nodes), len(self.elements)))
+        nodeAdjacency = np.zeros(shape=(len(self.nodes), len(self.nodes)))
+        elemNodeIntersection = np.zeros(shape=(len(self.nodes), len(self.elements)))
         for element in self.elements:
-            nodeAdjacency[element.i_Node.idnum, element.j_Node.idnum]=1
+            nodeAdjacency[element.i_Node.idnum, element.j_Node.idnum] = 1
             elemNodeIntersection[element.id, element.i_Node.idnum] = -1
             elemNodeIntersection[element.id, element.j_Node.idnum] = 1
-        return  nodeAdjacency, elemNodeIntersection
+        return nodeAdjacency, elemNodeIntersection
 
     def structureModelIntegrityChecker(self):
-        #TODO check and assign id nums for nodes and assign idnums to elements, also reorder nodes or elems then
+        # TODO check and assign id nums for nodes and assign idnums to elements, also reorder nodes or elems then
         pass
 
     def lookupNodefromIDnum(self, idnum):
         for node in self.nodes:
-            if node.idnum==idnum:
+            if node.idnum == idnum:
                 return node
 
     def singleFixedBeamHandler(self):
-        if len(self.elements)==1:
-            self.nodes.append(Node((self.elements[0].i_Node.x+self.elements[0].j_Node.x)/2,(self.elements[0].i_Node.y+self.elements[0].j_Node.y)/2, 2))
-            #TODO add property copying logic that does not copy member end nodes i guess
+        if len(self.elements) == 1:
+            self.nodes.append(
+                Node((self.elements[0].i_Node.x + self.elements[0].j_Node.x) / 2,
+                (self.elements[0].i_Node.y + self.elements[0].j_Node.y) / 2, 2))
+            # TODO add property copying logic that does not copy member end nodes i guess
+            subelems: list[Element] = []
+            subelems.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
+            subelems.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
+            subelems[0].i_Node = self.nodes[0]
+            subelems[0].j_Node = self.nodes[2]
             self.elements.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
-            self.elements[1].i_Node=self.nodes[0]
-            self.elements[1].j_Node=self.nodes[2]
-            self.elements.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
-            self.elements[2].i_Node = self.nodes[2]
-            self.elements[2].j_Node = self.nodes[1]
-            self.elements.pop(0)
+            subelems[0].i_Node = self.nodes[2]
+            subelems[0].j_Node = self.nodes[1]
+
+            ElementHelper.subDivElementLoads(self.elements[0], subElems=subelems)
+            self.elements = subelems
         pass
-
-
-
-
-
