@@ -34,8 +34,8 @@ class Node:
         self._pos = position
 
     def __repr__(self):
-        selfrep = ("Node ID: " + str(self.idnum) + '\n' +
-                   "Coordinates: " + str(self.pos) + '\n')
+        selfrep = ("Node ID: " + str(self.idnum) + ' \n' +
+                   "Coordinates: " + str(self.pos) + ' \n')
         return selfrep
 
     def addLoad(self, load: StaticLoad):

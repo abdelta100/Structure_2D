@@ -46,6 +46,17 @@ class StructureGlobalHelper:
 
     @staticmethod
     def normalizeDisp(allDisp, base_pos, maxDxScale, maxDyScale):
+        """
+        Normalizes the displacements returned from analysis so that the values given to displacement structure plotter
+        are proportional to their true magnitudes and represent the deformed shape adequately.
+
+        :rtype: list[list[float, float], list[float, float]]
+        :param allDisp: Deltas collected for each node of each element from analysis list[[dx1, dx2],[dy1,dy2]]
+        :param base_pos: Original x, y positions for each end node for each element list[[x1, x2],[y1,y2]]
+        :param maxDxScale: Maximum allowed value of normalized x-displacements
+        :param maxDyScale: Maximum allowed value of normalized y-displacements
+        :return:
+        """
         disparray=np.array(allDisp)
         absdisparray = np.abs(disparray)
         print(absdisparray[0, 1])

@@ -92,8 +92,8 @@ class StructureGlobal:
         filledDisplacementVector = np.concatenate((DU, DK), axis=0)
         filledForceVector = np.concatenate((FK, FU), axis=0)
 
-        self.pushDisplacements(filledDisplacementVector, permutationMatrix)
-        self.pushReactions(filledForceVector, permutationMatrix)
+        self._pushDisplacements(filledDisplacementVector, permutationMatrix)
+        self._pushReactions(filledForceVector, permutationMatrix)
 
         # TODO involve displacement vector
 
@@ -118,7 +118,7 @@ class StructureGlobal:
         orderedLoads = np.matmul(permutationMatrix, appLoads)
         return orderedLoads
 
-    def pushDisplacements(self, orderedDispVector, permutationMatrix):
+    def _pushDisplacements(self, orderedDispVector, permutationMatrix):
         # TODO future issue here. If my internal nodes are not fixed in some dof, I might have to transfer my nodal
         #  loads (received from analysis) back to nodes, and draw sfd etc from that
         origOrderDisplacement = np.matmul(permutationMatrix.T, orderedDispVector)
@@ -129,7 +129,7 @@ class StructureGlobal:
             node.disp["Dy"] = tempdisp[1]
             node.disp["Rxy"] = tempdisp[2]
 
-    def pushReactions(self, orderedForceVector, permutationMatrix):
+    def _pushReactions(self, orderedForceVector, permutationMatrix):
         # TODO figure out force/reaction push details since i'm not pushing anything to nodes here, just supports
         origOrderForce = np.matmul(permutationMatrix.T, orderedForceVector)
 
@@ -140,7 +140,8 @@ class StructureGlobal:
             support.reactions["Mxy"] = tempforce[2]
 
     def runAnalysis(self):
-        self.singleFixedBeamHandler()
+        self._structureModelIntegrityChecker()
+        self._singleFixedBeamHandler()
         self._solver()
 
     def findAllNodalForcesPostAnalysis(self):
@@ -164,20 +165,44 @@ class StructureGlobal:
             elemNodeIntersection[element.id, element.j_Node.idnum] = 1
         return nodeAdjacency, elemNodeIntersection
 
-    def structureModelIntegrityChecker(self):
+    def _structureModelIntegrityChecker(self):
         # TODO check and assign id nums for nodes and assign idnums to elements, also reorder nodes or elems then
-        pass
+        num_nodes = len(self.nodes)
+        node_num = list(range(num_nodes))
+        for node in self.nodes:
+            if node.idnum in node_num:
+                node_num.remove(node.idnum)
+
+        # for node in self.nodes:
+        #     if node.idnum not in node_num:
+        #         node.idnum = node_num[0]
+        #         node_num.pop(0)
+
+        num_supports = len(self.supports)
+        support_num = list(range(num_supports))
+
+        for support in self.supports:
+            if support.supportnum in support_num:
+                support_num.remove(support.supportnum)
+
+        # for support in self.supports:
+        #     if support.supportnum not in support_num:
+        #         support.supportnum = support_num[0]
+        #         support_num.pop(0)
+
+        for index, element in enumerate(self.elements):
+            element.id = index
 
     def lookupNodefromIDnum(self, idnum):
         for node in self.nodes:
             if node.idnum == idnum:
                 return node
 
-    def singleFixedBeamHandler(self):
+    def _singleFixedBeamHandler(self):
         if len(self.elements) == 1:
             self.nodes.append(
                 Node((self.elements[0].i_Node.x + self.elements[0].j_Node.x) / 2,
-                (self.elements[0].i_Node.y + self.elements[0].j_Node.y) / 2, 2))
+                     (self.elements[0].i_Node.y + self.elements[0].j_Node.y) / 2, 2))
             # TODO add property copying logic that does not copy member end nodes i guess
             subelems: list[Element] = []
             subelems.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
