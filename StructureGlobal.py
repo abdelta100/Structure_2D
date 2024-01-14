@@ -140,7 +140,7 @@ class StructureGlobal:
             support.reactions["Mxy"] = tempforce[2]
 
     def runAnalysis(self):
-        self._structureModelIntegrityChecker()
+        # self._structureModelIntegrityChecker()
         self._singleFixedBeamHandler()
         self._solver()
 

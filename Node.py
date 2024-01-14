@@ -4,9 +4,9 @@ from PrincipleForce import PrincipleForce
 
 class Node:
     def __init__(self, x, y, idnum):
-        self.idnum: int = idnum
-        self.x: float = x
-        self.y: float = y
+        self._idnum: int = idnum
+        self._x: float = x
+        self._y: float = y
         self._pos: tuple[float, float] = (x, y)
         # float for releases is proxy for stiffness. Maybe Check
         self.xActive: float = 1
@@ -17,10 +17,18 @@ class Node:
         # self.RxzActive = True
         # TODO implement moment and displacement releases, maybe in the element
         self.nodalLoads: list[StaticLoad] = []
-        self.FEM: PrincipleForce = PrincipleForce(0,0,0)
+        self.FEM: PrincipleForce = PrincipleForce(0, 0, 0)
         self.netLoad: list[float] = [0, 0, 0]  # [Moment, Perp Reaction Force]
-        self.disp: dict = {"Dx":0, "Dy":0, "Rxy":0}
-        self.nodalForces: dict = {"Fx":0, "Fy":0, "Mxy":0}
+        self.disp: dict = {"Dx": 0, "Dy": 0, "Rxy": 0}
+        self.nodalForces: dict = {"Fx": 0, "Fy": 0, "Mxy": 0}
+
+    @property
+    def idnum(self):
+        return self._idnum
+
+    @idnum.setter
+    def idnum(self, idnum):
+        self._idnum = idnum
 
     @property
     def pos(self):
@@ -29,9 +37,29 @@ class Node:
 
     @pos.setter
     def pos(self, position):
-        self.x = position[0]
-        self.y = position[1]
+        self._x = position[0]
+        self._y = position[1]
         self._pos = position
+
+    @property
+    def x(self):
+        # return self.pos[0]
+        return self._x
+
+    @x.setter
+    def x(self, x_):
+        # self.pos=(x_, self.pos[1])
+        self._x = x_
+
+    @property
+    def y(self):
+        # return self.pos[1]
+        return self._y
+
+    @y.setter
+    def y(self, y_):
+        # self.pos = (self.pos[1], y_)
+        self._y = y_
 
     def __repr__(self):
         selfrep = ("Node ID: " + str(self.idnum) + ' \n' +
@@ -62,8 +90,8 @@ class Node:
         Fx += self.FEM.fx
         Fy += self.FEM.fy
         Mxy += self.FEM.mxy
-        #TODO check if the following line should contain load objects or just magnitude
-        #TODO also see if i should use a dict object here or not
+        # TODO check if the following line should contain load objects or just magnitude
+        # TODO also see if i should use a dict object here or not
         self.netLoad = [Fx, Fy, Mxy]
 
     def pushNodalForces(self):

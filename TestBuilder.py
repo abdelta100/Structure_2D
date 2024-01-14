@@ -9,7 +9,7 @@ from Material import TestMaterial, DefaultMaterial
 from Node import Node
 from StructureGlobal import StructureGlobal
 from StructureGlobalHighRes import StructureGlobalHighRes
-from Support import Support
+from Support import Support, FixedSupport
 from StructureGlobalHelperFunctions import StructureGlobalHelper
 
 nodes: list[Node] = []
@@ -60,11 +60,12 @@ for element in elements:
 
 supports: list[Support] = []
 supports.append(Support.init_from_node(nodes[0], 0, support_type='Fixed'))
+# supports.append(FixedSupport(nodes[0], 0))
 supports.append(Support.init_from_node(nodes[5], 1, support_type='fixed'))
 
 
-# structure: StructureGlobal = StructureGlobal()
-structure: StructureGlobalHighRes = StructureGlobalHighRes()
+structure: StructureGlobal = StructureGlobal()
+# structure: StructureGlobalHighRes = StructureGlobalHighRes()
 structure.nodes = nodes
 structure.elements = elements
 structure.supports = supports
@@ -86,7 +87,7 @@ loads.append(PointLoad(100000, 0))
 elements[2].addLoad(loads[5])
 # nodes[1].addLoad(loads[-1])
 
-structure.subdivAllElements()
+# structure.subdivAllElements()
 structure.runAnalysis()
 print(nodes[1].disp)
 # print(nodes[18].disp)
