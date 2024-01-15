@@ -68,8 +68,8 @@ class UniformDistributedLoad(StaticLoad):
         perp_magnitude = self.magnitude * math.sin(self.angle)
         dN1 = mid
         dN2 = length - mid
-        R1 = +(dN1 * (dN2 ** 2) + ((dN1 - 2 * dN2) * dist ** 2) / 12) * (perp_magnitude * dist) / length ** 2
-        R2 = -(dN2 * (dN1 ** 2) + ((dN2 - 2 * dN1) * dist ** 2) / 12) * (perp_magnitude * dist) / length ** 2
+        R1 = -(dN1 * (dN2 ** 2) + ((dN1 - 2 * dN2) * dist ** 2) / 12) * (perp_magnitude * dist) / length ** 2
+        R2 = +(dN2 * (dN1 ** 2) + ((dN2 - 2 * dN1) * dist ** 2) / 12) * (perp_magnitude * dist) / length ** 2
 
         V2 = -(R1 + R2 + self.calcTotal() * math.sin(self.angle) * mid) / length
         V1 = -self.calcTotal() * math.sin(self.angle) - V2
@@ -167,8 +167,8 @@ class PointLoadMember(PointLoad):
         #TODO some buggery here with the sign of end moments in beneath lines, reactions would be opposite and so would the deflections. idk why
         # I think it shouldve worked but now R1 needs to be negative for downward load even though my reasoning suggests it should be positive (CCW) to act as
         # reaction for downward acting load. Figure this out. this buggery also exists very likely for udl and vdl
-        R1 = +perp_magnitude * dN1 * dN2 ** 2 / length ** 2
-        R2 = -perp_magnitude * dN2 * dN1 ** 2 / length ** 2
+        R1 = -perp_magnitude * dN1 * dN2 ** 2 / length ** 2
+        R2 = +perp_magnitude * dN2 * dN1 ** 2 / length ** 2
 
         par_magnitude = self.magnitude * math.cos(self.angle)
 
@@ -242,11 +242,11 @@ class VaryingDistributedLoad(StaticLoad):
         # Thanks to KootK, whoever he is, for saving me hours of algebra, which he probably did before I was even born
         # minus switched to maintain convention
 
-        R1 = (1 / 60) * tri_mag_perp * s2 * (
+        R1 = -(1 / 60) * tri_mag_perp * s2 * (
                 (2 * s2 ** 3) + (5 * s2 ** 2) * s1 + (20 * s3 ** 2) * s2 + (
                 30 * s3 ** 2) * s1 + (10 * s2 ** 2) * s3 + (
                         20 * s1 * s2 * s3)) / (s1 + s2 + s3) ** 2
-        R2 = -(1 / 60) * tri_mag_perp * s2 * (
+        R2 = +(1 / 60) * tri_mag_perp * s2 * (
                 (3 * s2 ** 3) + (15 * s2 ** 2) * s3 + (10 * s1 ** 2) * s2 + (
                 30 * s1 ** 2) * s3 + (10 * s2 ** 2) * s1 + (
                         40 * s1 * s2 * s3)) / (s1 + s2 + s3) ** 2
@@ -275,7 +275,7 @@ class VaryingDistributedLoad(StaticLoad):
 
         del temprect
 
-        V2 = -(iNodeFerTemp.mxy + jNodeFerTemp.mxy + self.calcTotal() * math.sin(
+        V2 = (iNodeFerTemp.mxy + jNodeFerTemp.mxy - self.calcTotal() * math.sin(
             self.angle) * self.calcCentroid()) / self.beamLength
         V1 = -self.calcTotal() * math.sin(self.angle) - V2
 

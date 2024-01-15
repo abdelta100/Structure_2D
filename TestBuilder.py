@@ -29,7 +29,7 @@ nodes.append(Node(20, 0, 5))
 # nodes.append(Node(20, 100, 12))
 
 # mater=NewMaterial(name="Custom", density=2000, elastic_mod=200000000, poisson_ratio=.33,comp_strength=3000)
-mater = TestMaterial(E=449570.7)
+mater = TestMaterial(E=4176000)
 section = TestRectangularCrossSection(A=(0.0625), I=(3.255E-4))
 
 elements: list[Element] = []
@@ -74,11 +74,11 @@ structure.supports = supports
 loads: list[StaticLoad] = []
 loads.append(Moment(50))
 loads.append(MomentMember(124, 10))
-loads.append(PointLoadMember(8, 3.5, angle=-90))
+loads.append(PointLoadMember(8, 10, angle=-90))
 loads.append(VaryingDistributedLoad(0.5*cos(degree2rad(20)), 1*cos(degree2rad(20)), 4, 14, angle=-90))
 loads.append(VaryingDistributedLoad(5*sin(degree2rad(20)), 10*sin(degree2rad(20)), 4, 14, angle=0))
-loads.append(VaryingDistributedLoad(5, 10, 4, 14, angle=-70))
-loads.append(UniformDistributedLoad(8/3, 2, 5, angle=-90))
+loads.append(VaryingDistributedLoad(10, 5, 4, 14, angle=-70))
+loads.append(UniformDistributedLoad(8/3, 2, 18, angle=-90))
 loads.append(TrapezoidalDistributedLoad([5, 13, 20], [0.13, 0.28, 0.28], angle=-90))
 loads.append(PointLoad(100000, 0))
 
