@@ -23,14 +23,14 @@ elements.append(Element(nodes[1], nodes[2]))
 elements.append(Element(nodes[2], nodes[3]))
 
 # Create custom materials and sections for use, or just let the defaults be.
-# TestMaterial and Section  class used here to avoid calculation of section and material dims etc,
+# TestMaterial and Section  class used here to avoid calculation of section and material dims etc.,
 # in case results need to be checked by software
 # You can use other material and section classes, init call can be found in Material.py and Section.py
 
 mater = TestMaterial(E=2E11)
 section = TestRectangularCrossSection(A=(0.05), I=(0.0001))
 
-# Assigning material and section to element, you can assign different sections etc to different elements
+# Assigning material and section to element, you can assign different sections etc. to different elements
 for element in elements:
     element.setMaterial(mater)
     element.setCrossSection(section)

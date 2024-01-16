@@ -29,3 +29,8 @@ I think. Divided multiple VDLs and summed their fixed end reactions.
 
 22 Dec 2023:
 Add principal force and Principal disp classes to accommodate single nodal loads for transfer etc. include summation behaviour and compose of point load and moment classes idk?
+
+13 Jan 2023:
+Figured out why results of code were wrong. Fundamentally an error in transforming element stiffness to global stiffness.
+Previously used Transformation * ElementStiffness * Transformation.T.
+Correct was Transformation.T * ElementStiffness * Transformation.

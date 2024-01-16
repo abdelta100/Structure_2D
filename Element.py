@@ -12,6 +12,12 @@ from PrincipleForce import PrincipleForce
 
 class Element:
     def __init__(self, i: Node, j: Node):
+        """
+        A 2D General Frame Element class. Linear element, has 3 DOF at each node, and 2 nodes.
+        :rtype: Element
+        :param i: Node object for i-node of element
+        :param j: Node object for j-node of element
+        """
         self._i_Node: Node | None = i
         self._j_Node: Node | None = j
         self.id = 0
@@ -74,12 +80,13 @@ class Element:
         print("s: ", s)
 
         # recheck the bottom
-        transformation_matrix = np.array([[c, s, 0, 0, 0, 0],
-                                          [-s, c, 0, 0, 0, 0],
-                                          [0, 0, 1, 0, 0, 0],
-                                          [0, 0, 0, c, s, 0],
-                                          [0, 0, 0, -s, c, 0],
-                                          [0, 0, 0, 0, 0, 1]], dtype=np.float64)
+        transformation_matrix = np.array(
+            [[c, s, 0, 0, 0, 0],
+                    [-s, c, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, c, s, 0],
+                    [0, 0, 0, -s, c, 0],
+                    [0, 0, 0, 0, 0, 1]], dtype=np.float64)
 
         return transformation_matrix
 
@@ -130,8 +137,8 @@ class Element:
         self.globalStiffnessMatrix = self.local2globalStiffness()
 
     def local2globalStiffness(self):
-        globalStiffnessMatrix = np.matmul(self.transformationMatrix.T,
-                                          np.matmul(self.localStiffnessMatrix, self.transformationMatrix))
+        globalStiffnessMatrix = np.matmul(
+            self.transformationMatrix.T, np.matmul(self.localStiffnessMatrix, self.transformationMatrix))
         return globalStiffnessMatrix
 
     def setMaterial(self, material: Material):

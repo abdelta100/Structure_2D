@@ -3,7 +3,14 @@ from PrincipleForce import PrincipleForce
 
 
 class Node:
-    def __init__(self, x, y, idnum):
+    def __init__(self, x: float, y: float, idnum: int):
+        """
+        A 2D Node class. Creates a node object in X, Y axes.
+        :rtype: Node
+        :param x: X-Coordinate of Node
+        :param y: Y-Coordinate of Node
+        :param idnum: ID number assigned to Node, must be unique.
+        """
         self._idnum: int = idnum
         self._x: float = x
         self._y: float = y

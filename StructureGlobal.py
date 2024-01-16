@@ -10,6 +10,9 @@ from Support import Support
 
 class StructureGlobal:
     def __init__(self):
+        """
+        A structure class that holds the entire structure, and contains methods for analysis etc.
+        """
         self.nodes: list[Node] = []
         self.elements: list[Element] = []
         self.supports: list[Support] = []
@@ -148,6 +151,9 @@ class StructureGlobal:
             # something like that
 
     def runAnalysis(self):
+        """
+        Method that runs analysis of the structure.
+        """
         # self._structureModelIntegrityChecker()
         self._singleFixedBeamHandler()
         self._solver()

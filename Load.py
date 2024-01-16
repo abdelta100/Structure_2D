@@ -5,7 +5,13 @@ from PrincipleForce import PrincipleForce
 
 
 class StaticLoad(ABC):
-    def __init__(self, magnitude: float = 0, local=False):
+    def __init__(self, magnitude: float = 0, local: bool = False):
+        """
+        A non instantiable abstract class that acts as base class for all static loading classes.
+        :rtype: StaticLoad
+        :param magnitude: Magnitude of load. Override-able
+        :param local: Boolean that describes whether load is applied relative to global axes, or local.
+        """
         self.loadClass: str = "None"
         self.name: str = "None"
         self.beamLength: float = 1
@@ -43,7 +49,15 @@ class StaticLoad(ABC):
 
 
 class UniformDistributedLoad(StaticLoad):
-    def __init__(self, magnitude, start_location, end_location, angle=270):
+    def __init__(self, magnitude: float, start_location: float, end_location: float, angle: float = 270):
+        """
+        A uniformly distributed loading patter. Has constant magnitude over its distance of application.
+        :rtype: UniformDistributedLoad
+        :param magnitude: Magnitude of Load, can be negative but will act in opposite direction to given angle.
+        :param start_location: Distance along member (from i-node to j-node) at which the load starts.
+        :param end_location: Distance along member (from i-node to j-node) at which the load ends.
+        :param angle: angle in degrees of load application, referenced globally +x axis is 0 degrees, CCW angle is measured positive. Local reference application to be implemented.
+        """
         # TODO implement local reference load application and projected load application
         super().__init__()
         self.loadClass = "Uniformly Distributed Load"
@@ -85,7 +99,7 @@ class UniformDistributedLoad(StaticLoad):
 
         return iNodeFer, jNodeFer
 
-    def magnitudeAtPoint(self, point, axis='perpendicular'):
+    def magnitudeAtPoint(self, point, axis: str = 'perpendicular'):
         # TODO returning magnitude for now, but issue with projections and loads at an angle etc
         if self.start <= point <= self.end:
             magnitude = {"perpendicular": self.magnitude * math.sin(self.angle),
@@ -98,7 +112,13 @@ class UniformDistributedLoad(StaticLoad):
 
 
 class PointLoad(StaticLoad):
-    def __init__(self, magnitude, angle_degree=0, local=False):
+    def __init__(self, magnitude: float, angle_degree: float = 0, local=False):
+        """
+        A point load that can only be applied on Nodes (NOT members/elements).
+        :rtype: PointLoad
+        :param magnitude: Magnitude of Point Load, can be negative but will act in opposite direction to given angle.
+        :param angle_degree: angle in degrees of load application, referenced globally +x axis is 0 degrees, CCW angle is measured positive.
+        """
         super().__init__()
         self.loadClass = "Point Load"
         self.magnitude = magnitude
@@ -144,7 +164,14 @@ class PointLoad(StaticLoad):
 
 
 class PointLoadMember(PointLoad):
-    def __init__(self, magnitude, location, angle=270):
+    def __init__(self, magnitude: float, location: float, angle: float = 270):
+        """
+        A point Load object that is applied on a member. Different from PointLoad object which is built for application on a node.
+        :rtype: PointLoadMember
+        :param magnitude: Magnitude of Point Load, can be negative but will act in opposite direction to given angle.
+        :param location: Location along member (from i-node to j-node) at which point load acts.
+        :param angle: angle in degrees of load application, referenced globally +x axis is 0 degrees, CCW angle is measured positive. Local reference application to be implemented.
+        """
         super().__init__(magnitude)
         self.location = location
         # TODO jugar fix this
@@ -164,7 +191,7 @@ class PointLoadMember(PointLoad):
 
         V1 = -(3 * dN1 + dN2) * perp_magnitude * dN2 ** 2 / length ** 3
         V2 = -(3 * dN2 + dN1) * perp_magnitude * dN1 ** 2 / length ** 3
-        #TODO some buggery here with the sign of end moments in beneath lines, reactions would be opposite and so would the deflections. idk why
+        # TODO some buggery here with the sign of end moments in beneath lines, reactions would be opposite and so would the deflections. idk why
         # I think it shouldve worked but now R1 needs to be negative for downward load even though my reasoning suggests it should be positive (CCW) to act as
         # reaction for downward acting load. Figure this out. this buggery also exists very likely for udl and vdl
         R1 = -perp_magnitude * dN1 * dN2 ** 2 / length ** 2
@@ -180,7 +207,7 @@ class PointLoadMember(PointLoad):
 
         return iNodeFer, jNodeFer
 
-    def magnitudeAtPoint(self, point, axis="perpendicular"):
+    def magnitudeAtPoint(self, point: float, axis: str = "perpendicular") -> float:
         # TODO fix the axis wala jugaar
         if point == self.location:
             magnitude = {"perpendicular": self.magnitude * math.sin(self.angle),
@@ -192,10 +219,20 @@ class PointLoadMember(PointLoad):
 
 
 class VaryingDistributedLoad(StaticLoad):
-    def __init__(self, start_magniude, end_magnitude, start_location, end_location, angle=270):
+    def __init__(self, start_magnitude: float, end_magnitude: float, start_location: float, end_location: float,
+                 angle: float = 270):
+        """
+        Initializes a Uniformly Varying Load/Varying Distributed Load Object. A loading pattern where load varies constantly from one magnitude to another.
+        :rtype: VaryingDistributedLoad
+        :param start_magnitude: Load magnitude at start, can be negative but load application will be reversed to given angle
+        :param end_magnitude: Load magnitude at end, can be negative but load application will be reversed to given angle
+        :param start_location: Distance along member (from i-node to j-node) at which the load starts.
+        :param end_location: Distance along member (from i-node to j-node) at which the load ends.
+        :param angle: angle in degrees of load application, referenced globally +x axis is 0 degrees, CCW angle is measured positive. Local reference application to be implemented.
+        """
         super().__init__()
         self.loadClass = "Varying Distributed Load"
-        self.start_magnitude = start_magniude
+        self.start_magnitude = start_magnitude
         self.end_magnitude = end_magnitude
         self.start = start_location
         self.end = end_location
@@ -275,7 +312,8 @@ class VaryingDistributedLoad(StaticLoad):
 
         del temprect
         # fm = self.calcTotal() * math.sin(self.angle) * self.calcCentroid()
-        V2 = -(iNodeFer.mxy + jNodeFer.mxy + self.calcTotal() * math.sin(self.angle) * self.calcCentroid()) / self.beamLength
+        V2 = -(iNodeFer.mxy + jNodeFer.mxy + self.calcTotal() * math.sin(
+            self.angle) * self.calcCentroid()) / self.beamLength
         V1 = -self.calcTotal() * math.sin(self.angle) - V2
 
         iNodeFer.fy = V1
@@ -283,7 +321,7 @@ class VaryingDistributedLoad(StaticLoad):
 
         return iNodeFer, jNodeFer
 
-    def magnitudeAtPoint(self, point, axis='perpendicular'):
+    def magnitudeAtPoint(self, point, axis: str = 'perpendicular'):
         if self.start <= point <= self.end:
             magnitude = {"perpendicular": self.start_magnitude * math.sin(self.angle) + (
                     (point - self.start) * (self.end_magnitude - self.start_magnitude) * math.sin(self.angle) / (
@@ -299,7 +337,12 @@ class VaryingDistributedLoad(StaticLoad):
 
 
 class Moment(StaticLoad):
-    def __init__(self, magnitude):
+    def __init__(self, magnitude: float):
+        """
+        A moment load that can only be applied on Nodes (NOT members/elements)
+        :rtype: Moment
+        :param magnitude: Magnitude of Moment Load. CCW is positive.
+        """
         super().__init__(magnitude)
         self.loadClass = "Moment"
         self.magnitude = magnitude
@@ -318,7 +361,13 @@ class Moment(StaticLoad):
 
 class MomentMember(Moment):
     # TODO figure moment fem transfer in case moment is not at node
-    def __init__(self, magnitude, location):
+    def __init__(self, magnitude: float, location: float):
+        """
+        A moment load that can only be applied on members.
+        :rtype: MomentMember
+        :param magnitude: Magnitude of moment load. CCW is positive.
+        :param location: Distance along member (from i-node to j-node) at which load is applied.
+        """
         super().__init__(magnitude)
         self.location = location
 
@@ -346,15 +395,29 @@ class MomentMember(Moment):
     def toNode(self):
         pass
 
+    def magnitudeAtPoint(self, point: float, axis: str = "perpendicular") -> float:
+        # TODO fix the axis wala jugaar
+        if point == self.location:
+            return self.magnitude
+        else:
+            return 0
+
 
 class TrapezoidalDistributedLoad(VaryingDistributedLoad):
 
-    def __init__(self, location_list: list[float], magnitude_list: list[float], angle=270):
+    def __init__(self, location_list: list[float], magnitude_list: list[float], angle: float = 270):
+        """
+        A loading pattern that has many loading magnitudes specified at many locations. A single magnitude must be specified for each location. Both lists should have the same length.
+        :rtype: TrapezoidalDistributedLoad
+        :param location_list: A list of locations along the member at which magnitude of the loading changes, or locations at which magnitude is specified. Each location is distance along member (from i-node to j-node).
+        :param magnitude_list: A list of magnitudes of loading at each respective point specified in location_list. Can be negative, but will oposite to given angle.
+        :param angle: angle in degrees of load application, referenced globally +x axis is 0 degrees, CCW angle is measured positive. Local reference application to be implemented.
+        """
         self.loadClass = "Trapezoidal Distributed Load"
         self.angle = degree2rad(angle)
         self.VDLset: list[VaryingDistributedLoad] = []
-        self.location_list=location_list
-        self.magnitude_lst=magnitude_list
+        self.location_list = location_list
+        self.magnitude_lst = magnitude_list
         self.inputIntegrityCheck(location_list, magnitude_list)
         self.initializeVDLset(location_list, magnitude_list)
 
@@ -383,7 +446,7 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
 
         return iNodeFer, jNodeFer
 
-    def magnitudeAtPoint(self, point, axis='perpendicular'):
+    def magnitudeAtPoint(self, point, axis: str = 'perpendicular'):
         for vdl in self.VDLset:
             magnitude = vdl.magnitudeAtPoint(point, axis)
             if magnitude != 0:
