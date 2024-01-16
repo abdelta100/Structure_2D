@@ -135,9 +135,17 @@ class StructureGlobal:
 
         for support in self.supports:
             tempforce = origOrderForce[support.idnum * self.dof:(support.idnum + 1) * self.dof]
-            support.reactions["Fx"] = tempforce[0]
-            support.reactions["Fy"] = tempforce[1]
-            support.reactions["Mxy"] = tempforce[2]
+            nodeAppliedForce=support.node.FEM
+            support.reaction.fx = tempforce[0] # -nodeAppliedForce.fx
+            support.reaction.fy = tempforce[1] # -nodeAppliedForce.fy
+            support.reaction.mxy = tempforce[2] # -nodeAppliedForce.mxy
+            
+            # Forces applied on support node are returned directly in reverse as reaction, so we subtract applied force
+            # from support reaction found from analysis to get actual support reactions
+            support.reaction -= nodeAppliedForce
+
+            # TODO add some transformation thingy here for support in case support reactions are not x/y or perp or
+            # something like that
 
     def runAnalysis(self):
         # self._structureModelIntegrityChecker()
@@ -200,18 +208,19 @@ class StructureGlobal:
 
     def _singleFixedBeamHandler(self):
         if len(self.elements) == 1:
-            self.nodes.append(
+            self.nodes.insert(1,
                 Node((self.elements[0].i_Node.x + self.elements[0].j_Node.x) / 2,
-                     (self.elements[0].i_Node.y + self.elements[0].j_Node.y) / 2, 2))
+                     (self.elements[0].i_Node.y + self.elements[0].j_Node.y) / 2, 1))
+            self.nodes[2].idnum=2
             # TODO add property copying logic that does not copy member end nodes i guess
             subelems: list[Element] = []
             subelems.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
             subelems.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
             subelems[0].i_Node = self.nodes[0]
-            subelems[0].j_Node = self.nodes[2]
+            subelems[0].j_Node = self.nodes[1]
             self.elements.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
-            subelems[1].i_Node = self.nodes[2]
-            subelems[1].j_Node = self.nodes[1]
+            subelems[1].i_Node = self.nodes[1]
+            subelems[1].j_Node = self.nodes[2]
 
             ElementHelper.subDivElementLoads(self.elements[0], subElems=subelems)
             self.elements = subelems

@@ -1,4 +1,5 @@
 from Node import Node
+from PrincipleForce import Reaction
 
 
 # class Support(Node):
@@ -11,7 +12,7 @@ class Support(Node):
         in_=node.idnum
         super().__init__(x_, y_, in_)
         self.supportnum: int = support_num
-        self.reactions: dict = {"Fx": 0, "Fy": 0, "Mxy": 0}
+        self.reaction: Reaction = Reaction()
         self.setDOF(support_type)
         self.node = node
 

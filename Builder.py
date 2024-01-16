@@ -63,7 +63,7 @@ elements[1].addLoad(loads[1])
 structure.runAnalysis()
 
 # Print support reactions
-print(supports[0].reactions)
-print(supports[1].reactions)
+print(supports[0].reaction)
+print(supports[1].reaction)
 
 # Further outputs to be refined

@@ -3,7 +3,7 @@ import math
 
 
 class PrincipleForce:
-    def __init__(self, Fx, Fy, Mxy):
+    def __init__(self, Fx=0, Fy=0, Mxy=0):
         self._Fx = Fx
         self._Fy = Fy
         self._Mxy = Mxy
@@ -66,3 +66,12 @@ class PrincipleForce:
     @mxy.setter
     def mxy(self, Mxy):
         self._Mxy = Mxy
+
+class FEM(PrincipleForce):
+    def __init__(self, Fx, Fy, Mxy):
+        super().__init__(Fx, Fy, Mxy)
+
+
+class Reaction(PrincipleForce):
+    def __init__(self, Fx=0, Fy=0, Mxy=0):
+        super().__init__(Fx, Fy, Mxy)
