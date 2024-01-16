@@ -77,8 +77,8 @@ loads.append(MomentMember(124, 10))
 loads.append(PointLoadMember(8, 10, angle=-90))
 loads.append(VaryingDistributedLoad(0.5*cos(degree2rad(20)), 1*cos(degree2rad(20)), 4, 14, angle=-90))
 loads.append(VaryingDistributedLoad(5*sin(degree2rad(20)), 10*sin(degree2rad(20)), 4, 14, angle=0))
-loads.append(VaryingDistributedLoad(10, 5, 4, 14, angle=-70))
-loads.append(UniformDistributedLoad(8/3, 2, 18, angle=-90))
+loads.append(VaryingDistributedLoad(0, 5, 4, 14, angle=-70))
+loads.append(UniformDistributedLoad(5, 4, 14, angle=-70))
 loads.append(TrapezoidalDistributedLoad([5, 13, 20], [0.13, 0.28, 0.28], angle=-90))
 loads.append(PointLoad(100000, 0))
 
@@ -98,11 +98,11 @@ print(supports[1].reactions)
 spr=StructureGlobalHelper
 spr.graphNodalDisplacementGraph(structure=structure)
 
-# TODO Fix FEM directions, needs to be opposite applied load, and the directions need to be reversed again when
-#  transferring to nodes
+
 # TODO there IS an error in transferring reactionary forces or whatever  at nodes post analysis
 
 
 # TODO add a function that prints model summary, maybe use __repr__ or something for individual elements
 # TODO n order analysis
+# TODO add section rotation capability and 1-axis 2-axis Moment of Inertia
 # TODO Big probelm regarding MOMENTS AND DIRECTIONS etc

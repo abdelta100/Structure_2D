@@ -27,11 +27,13 @@ class Element:
         self.localStiffnessMatrix: np.ndarray = np.zeros(shape=(6, 6))
         self.transformationMatrix: np.ndarray = np.zeros(shape=(6, 6))
         self.globalStiffnessMatrix: np.ndarray = np.zeros(shape=(6, 6))
-        try:
-            self.length: float = self.calc_length()
-            self.recalculateMatrices()
-        except:
-            pass
+        # try:
+        self.length: float = max(euclidean(self._i_Node.pos, self._j_Node.pos), 0.001)
+        self.recalculateMatrices()
+        # except:
+        #     pass
+            # self.length=0.001
+            # self.recalculateMatrices()
         # TODO add something about self weight
 
     def elementStiffnessMatrix(self):
@@ -89,6 +91,7 @@ class Element:
         # TODO needs work to define order of precedence. Add load first or select member first?
 
     def addLoad(self, load: StaticLoad):
+        #TODO add local and projection option control here?
         load.beamLength = self.length
         if isinstance(load, UniformDistributedLoad) or isinstance(load, VaryingDistributedLoad):
             load.cleanInputs()
@@ -212,7 +215,11 @@ class Element:
 
     def calc_length(self):
         # TODO both sets a value and returns a value, check if this is correct
-        self.length: float = euclidean(self._i_Node.pos, self._j_Node.pos)
+        length: float = euclidean(self._i_Node.pos, self._j_Node.pos)
+        if length != self.length:
+            self.recalculateMatrices()
+        self.length=length
+        if length==0: self.length=0.001
         return self.length
 
     @property

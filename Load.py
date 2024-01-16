@@ -274,9 +274,8 @@ class VaryingDistributedLoad(StaticLoad):
         jNodeFer += jNodeFerTemp
 
         del temprect
-
-        V2 = (iNodeFerTemp.mxy + jNodeFerTemp.mxy - self.calcTotal() * math.sin(
-            self.angle) * self.calcCentroid()) / self.beamLength
+        # fm = self.calcTotal() * math.sin(self.angle) * self.calcCentroid()
+        V2 = -(iNodeFer.mxy + jNodeFer.mxy + self.calcTotal() * math.sin(self.angle) * self.calcCentroid()) / self.beamLength
         V1 = -self.calcTotal() * math.sin(self.angle) - V2
 
         iNodeFer.fy = V1

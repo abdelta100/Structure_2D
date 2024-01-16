@@ -210,8 +210,8 @@ class StructureGlobal:
             subelems[0].i_Node = self.nodes[0]
             subelems[0].j_Node = self.nodes[2]
             self.elements.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
-            subelems[0].i_Node = self.nodes[2]
-            subelems[0].j_Node = self.nodes[1]
+            subelems[1].i_Node = self.nodes[2]
+            subelems[1].j_Node = self.nodes[1]
 
             ElementHelper.subDivElementLoads(self.elements[0], subElems=subelems)
             self.elements = subelems

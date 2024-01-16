@@ -2,7 +2,7 @@ from Node import Node
 
 
 # class Support(Node):
-# Removed subclassing from node for now
+#TODO Remove subclassing from node?
 class Support(Node):
     def __init__(self, node, support_num, support_type: str = 'fixed'):
         self.node = node
