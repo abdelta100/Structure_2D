@@ -10,6 +10,7 @@ def getPerpendicularComponentsRefBeam(theta, vector):
     Vy = vector * math.cos(theta)
     return Vx, Vy
 
+
 def getAxialComponentsRefBeam(theta, vector):
     Vx = vector * math.cos(theta)
     Vy = vector * math.sin(theta)
@@ -49,3 +50,11 @@ def matrixStabilityCheck(matrix):
 
     else:
         return matrix
+
+
+def distance(u, v):
+    # TODO add iterable typing here maybe
+    if len(u) != len(v):
+        print("Position arrays passed for distance are of unequal length")
+    dist = np.linalg.norm(np.array(u) - np.array(v))
+    return dist

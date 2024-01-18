@@ -78,7 +78,7 @@ loads.append(PointLoadMember(8, 10, angle=-90))
 loads.append(VaryingDistributedLoad(0.5*cos(degree2rad(20)), 1*cos(degree2rad(20)), 4, 14, angle=-90))
 loads.append(VaryingDistributedLoad(5*sin(degree2rad(20)), 10*sin(degree2rad(20)), 4, 14, angle=0))
 loads.append(VaryingDistributedLoad(0, 5, 4, 14, angle=-70))
-loads.append(UniformDistributedLoad(5, 4, 14, angle=-90))
+loads.append(UniformDistributedLoad(500, 4, 14, angle=-90))
 loads.append(TrapezoidalDistributedLoad([5, 13, 20], [0.13, 0.28, 0.28], angle=-90))
 loads.append(PointLoad(100000, 0))
 

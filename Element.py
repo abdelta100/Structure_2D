@@ -1,14 +1,15 @@
 import math
 
 import numpy as np
-from scipy.spatial.distance import euclidean
+# from scipy.spatial.distance import euclidean
+from AuxillaryFunctions import distance as euclidean
 
 from CrossSection import DefaultRectangularCrossSection, CrossSection
 from Load import StaticLoad, UniformDistributedLoad, VaryingDistributedLoad, PointLoadMember, MomentMember
 from Material import DefaultMaterial, Material
 from Node import Node
 from PrincipleForce import PrincipleForce
-
+# TODO Incorporate a 2D general frame element class here by renaming element class, and set element class  to inherit from it
 
 class Element:
     def __init__(self, i: Node, j: Node):
@@ -246,3 +247,9 @@ class Element:
     def j_Node(self, j_node):
         self._j_Node = j_node
         self.length = self.calc_length()
+
+class Element2():
+    # ALiasing generalframe element 2d requires somework, esp in sudiv elements where the element are themselves not 2D
+    # General Frame
+    def __init__(self):
+        pass

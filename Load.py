@@ -112,18 +112,18 @@ class UniformDistributedLoad(StaticLoad):
 
 
 class PointLoad(StaticLoad):
-    def __init__(self, magnitude: float, angle_degree: float = 0, local=False):
+    def __init__(self, magnitude: float, angle: float = 0, local=False):
         """
         A point load that can only be applied on Nodes (NOT members/elements).
         :rtype: PointLoad
         :param magnitude: Magnitude of Point Load, can be negative but will act in opposite direction to given angle.
-        :param angle_degree: angle in degrees of load application, referenced globally +x axis is 0 degrees, CCW angle is measured positive.
+        :param angle: angle in degrees of load application, referenced globally +x axis is 0 degrees, CCW angle is measured positive.
         """
         super().__init__()
         self.loadClass = "Point Load"
         self.magnitude = magnitude
         # TODO implement rad to degree?
-        self.angle: float = degree2rad(angle_degree)
+        self.angle: float = degree2rad(angle)
 
     def getComponents(self):
         c = math.cos(self.angle)
@@ -151,7 +151,7 @@ class PointLoad(StaticLoad):
             combmag = math.sqrt(combx ** 2 + comby ** 2)
             combangle = math.atan2(comby, combx)
 
-            newPointLoad = PointLoad(combmag, angle_degree=rad2degree(combangle))
+            newPointLoad = PointLoad(combmag, angle=rad2degree(combangle))
 
             return newPointLoad
         else:
@@ -452,4 +452,5 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
             if magnitude != 0:
                 return magnitude
         else:
+            # MARKER: This else should work as intended even if its with for not if, but marker here anyway.
             return 0

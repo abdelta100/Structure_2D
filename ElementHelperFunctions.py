@@ -9,11 +9,12 @@ from Load import PointLoadMember, MomentMember, UniformDistributedLoad, Trapezoi
 
 class ElementHelper:
     @staticmethod
-    def copyElementPropertiesSansNodes(element: Element) -> Element:
+    def copyElementPropertiesSansNodes(element: Element, clearLoads=True) -> Element:
         newElem = copy.deepcopy(element)
         #TODO jugaar here, initialzed to random node
         newElem.i_Node = Node(0,0, -999)
         newElem.j_Node = Node(0,0, -999)
+        if clearLoads: newElem.clearLoads()
         return newElem
 
     @staticmethod
@@ -22,7 +23,7 @@ class ElementHelper:
             minusdist = 0
             plusdist = 0
             for subElem in subElems:
-                subElem.clearLoads()
+                # subElem.clearLoads()
                 minusdist = plusdist
                 length = subElem.length
                 plusdist += length

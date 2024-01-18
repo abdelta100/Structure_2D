@@ -51,7 +51,7 @@ structure.supports = supports
 # Create a Load List, not necessary for load application, you can addLoad directly to element via .addLoad() call
 loads: list[StaticLoad] = []
 # Each load class takes different input parameters, see documentation
-loads.append(PointLoad(20, angle_degree=0))
+loads.append(PointLoad(20, angle=0))
 loads.append(PointLoadMember(50, 10, angle=0))
 loads.append(VaryingDistributedLoad(5, 10, 4, 14, angle=-70))
 
