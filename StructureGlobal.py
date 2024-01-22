@@ -17,7 +17,7 @@ class StructureGlobal:
         self.elements: list[Element] = []
         self.supports: list[Support] = []
         self.loads: list[StaticLoad] = []
-        self.stiffnessMatrix: np.array = np.zeros(shape=(len(self.nodes) * 3, len(self.nodes) * 3))
+        self.stiffnessMatrix: np.ndarray = np.zeros(shape=(len(self.nodes) * 3, len(self.nodes) * 3))
         self.dof = 3
 
     def createGlobalStiffnessMatrix(self):
@@ -230,4 +230,20 @@ class StructureGlobal:
 
             ElementHelper.subDivElementLoads(self.elements[0], subElems=subelems)
             self.elements = subelems
-        pass
+
+    def modelSummary(self):
+        # TODO improve this
+        summary = ">>>>>>>>>>>>>MODEL SUMMARY<<<<<<<<<<<<<\n"
+        summary += "REACTIONS\n"
+        for support in self.supports:
+            summary += "Reaction at Support# "+str(support.supportnum)+" is "+str(support.reaction)+"\n"
+        summary += "\n"
+        summary += "NODAL DISPLACEMENTS\n"
+        for node in self.nodes:
+            summary += "Displacement at Node# " + str(node.idnum) + " is " + str(node.disp) + "\n"
+        summary += "\n"
+        summary += "NODAL FEM\n"
+        for node in self.nodes:
+            summary += "FEM at Node# "+str(node.idnum)+" is "+str(node.FEM)+"\n"
+
+        return summary

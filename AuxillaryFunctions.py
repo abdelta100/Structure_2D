@@ -41,7 +41,7 @@ def matrixStabilityCheck(matrix):
         max_sv = np.max(singular_values)
         min_sv = np.min(singular_values)
 
-        print(min_sv / max_sv)
+        print("Matrix Condition Number: "+ str(min_sv / max_sv)+"\n")
 
         matrix_nudged = matrix + np.eye(matrix.shape[0]) * 1e-9
         newcond = np.linalg.cond(matrix_nudged)

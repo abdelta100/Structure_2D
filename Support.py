@@ -14,7 +14,7 @@ class Support(Node):
         :param support_num: Manually assigned support ID number. Must be unique.
         :param support_type: string to identify which type of support this is. "Fixed", "Pinned", "Roller-x", "Roller-y"
         """
-        self.node = node
+        self.node: Node = node
         x_ = node.x
         y_ = node.y
         in_ = node.idnum
@@ -22,7 +22,6 @@ class Support(Node):
         self.supportnum: int = support_num
         self.reaction: Reaction = Reaction()
         self.setDOF(support_type)
-        self.node: Node = node
 
     # TODO should be deprecated
     @staticmethod

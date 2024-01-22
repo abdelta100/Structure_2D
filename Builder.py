@@ -53,17 +53,16 @@ loads: list[StaticLoad] = []
 # Each load class takes different input parameters, see documentation
 loads.append(PointLoad(20, angle=0))
 loads.append(PointLoadMember(50, 10, angle=0))
-loads.append(VaryingDistributedLoad(5, 10, 4, 14, angle=-70))
+loads.append(VaryingDistributedLoad(10, 5, 4, 14, angle=-70))
 
 # Assign Loads to either element or node via .addLoad call
-elements[1].addLoad(loads[1])
+elements[1].addLoad(loads[2])
 # nodes[1].addLoad(loads[0])
 
 # Run analysis
 structure.runAnalysis()
 
 # Print support reactions
-print(supports[0].reaction)
-print(supports[1].reaction)
+print(structure.modelSummary())
 
 # Further outputs to be refined

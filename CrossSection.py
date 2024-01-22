@@ -7,8 +7,8 @@ class CrossSection(ABC):
         A non-instantiable abstract class that acts as base for all cross-section classes.
         """
         self.name: str = "None"
-        # self.momentOfInertia: float = self.calcMomentofInertia()
-        # self.area: float = self.calcSectionArea()
+        self.momentOfInertia: float = 1
+        self.area: float = 1
 
     def calcMomentofInertia(self) -> float:
         return 0
