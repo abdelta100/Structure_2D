@@ -31,6 +31,10 @@ class PrincipleDisplacement2D:
         representation = {"Fx": self.dx, "Fy": self.dy, "Mxy": self.rxy}
         return str(representation)
 
+    def __len__(self):
+        # FOR 2D Only
+        return 3
+
     def transform(self, angle):
         xComp = self.dy * math.sin(angle) + self.dx * math.cos(angle)
         yComp = self.dy * math.cos(angle) + self.dx * math.sin(angle)

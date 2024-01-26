@@ -31,6 +31,10 @@ class PrincipleForce2D:
         representation = {"Fx": self.fx, "Fy": self.fy, "Mxy": self.mxy}
         return str(representation)
 
+    def __len__(self):
+        #FOR 2D Only
+        return 3
+
     def transform(self, angle):
         xComp = self.fy * math.sin(angle) + self.fx * math.cos(angle)
         yComp = self.fy * math.cos(angle) + self.fx * math.sin(angle)
