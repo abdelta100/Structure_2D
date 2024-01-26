@@ -54,6 +54,9 @@ class PrincipleDisplacement2D:
     def tolist(self):
         return [self.dx, self.dy, self.rxy]
 
+    def todict(self):
+        return {"Dx": self.dx, "Dy": self.dy, "Rxy": self.rxy}
+
     @property
     def dx(self):
         return self._Dx

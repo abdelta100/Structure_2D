@@ -32,7 +32,7 @@ class PrincipleForce2D:
         return str(representation)
 
     def __len__(self):
-        #FOR 2D Only
+        # FOR 2D Only
         return 3
 
     def transform(self, angle):
@@ -53,6 +53,9 @@ class PrincipleForce2D:
 
     def tolist(self):
         return [self.fx, self.fy, self.mxy]
+
+    def todict(self):
+        return {"Fx": self.fx, "Fy": self.fy, "Mxy": self.mxy}
 
     @property
     def fx(self):
