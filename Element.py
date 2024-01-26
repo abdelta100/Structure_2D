@@ -8,7 +8,10 @@ from CrossSection import DefaultRectangularCrossSection, CrossSection
 from Load import StaticLoad, UniformDistributedLoad, VaryingDistributedLoad, PointLoadMember, MomentMember
 from Material import DefaultMaterial, Material
 from Node import Node
-from PrincipleForce import PrincipleForce
+from PrincipleForce import PrincipleForce2D
+from MemberEndRelease import FixedEndMember, MemberEndRelease2D
+
+
 # TODO Incorporate a 2D general frame element class here by renaming element class, and set element class  to inherit from it
 
 class Element:
@@ -29,11 +32,12 @@ class Element:
         self.A: float = self.crossSection.area
         self.loads: list[StaticLoad] = []
         # TODO adds x or axial comp in nodeFEM
-        self.node1FEM: PrincipleForce = PrincipleForce(0, 0, 0)
-        self.node2FEM: PrincipleForce = PrincipleForce(0, 0, 0)
+        self.node1FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
+        self.node2FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
         self.localStiffnessMatrix: np.ndarray = np.zeros(shape=(6, 6))
         self.transformationMatrix: np.ndarray = np.zeros(shape=(6, 6))
         self.globalStiffnessMatrix: np.ndarray = np.zeros(shape=(6, 6))
+        self.endReleases: MemberEndRelease2D = FixedEndMember()
         # try:
         self.length: float = max(euclidean(self._i_Node.pos, self._j_Node.pos), 0.001)
         self.recalculateMatrices()
@@ -63,6 +67,8 @@ class Element:
                     [0, pt3, pt4 / 2, 0, -pt3, pt4]],
             dtype=np.float64)
 
+        end_release_modification_matrix=self.endReleaseHandler(stiffness_matrix)
+
         return stiffness_matrix
 
     def elementTransformationMatrix(self):
@@ -76,9 +82,6 @@ class Element:
             c = 0
         if -zerolim < s < zerolim:
             s = 0
-
-        print("c: ", c)
-        print("s: ", s)
 
         # recheck the bottom
         transformation_matrix = np.array(
@@ -112,8 +115,8 @@ class Element:
         pass
 
     def calculateFixedEndMoments(self):
-        iNodeLoad = PrincipleForce(0, 0, 0)
-        jNodeLoad = PrincipleForce(0, 0, 0)
+        iNodeLoad = PrincipleForce2D(0, 0, 0)
+        jNodeLoad = PrincipleForce2D(0, 0, 0)
         for load in self.loads:
             iNodeLoadTemp, jNodeLoadTemp = load.calcFixedEndReactions()
             iNodeLoad -= iNodeLoadTemp
@@ -154,6 +157,10 @@ class Element:
         self.I = self.crossSection.calcMomentofInertia()
         self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
         self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
+
+    def elementEndForces(self):
+
+        pass
 
     def calculateInternalForcesAndDisplacements(self):
         self.calcShearForceDiagram()
@@ -230,6 +237,21 @@ class Element:
         if length==0: self.length=0.001
         return self.length
 
+    def reset(self, reset_type="soft"):
+        self.node1FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
+        self.node2FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
+        if reset_type == "hard":
+            self.clearLoads()
+
+    def endReleaseHandler(self, localStiffness):
+        release: np.ndarray = np.ndarray(self.endReleases.tolist())
+        base_transformation = np.ones(shape=(release.shape[0], release.shape[0]))
+        for i in range(release.shape[0]):
+            if release[i] !=1: #keep it not 1 in case further spring rotation needs to be added
+                # localStiffness[i,]=1
+                pass
+        pass
+
     @property
     def i_Node(self):
         return self._i_Node
@@ -248,8 +270,38 @@ class Element:
         self._j_Node = j_node
         self.length = self.calc_length()
 
+
 class Element2():
     # ALiasing generalframe element 2d requires somework, esp in sudiv elements where the element are themselves not 2D
     # General Frame
     def __init__(self):
         pass
+
+class TrussElement(Element):
+    def __init__(self, i: Node, j: Node):
+        super().__init__(i, j)
+
+    def elementStiffnessMatrix(self):
+        # Partial Term 1: EA/L
+        # Partial Term 2: 12EI/L^3
+        # Partial Term 3: 6EI/L^2
+        # Partial Term 4: 4EI/L
+
+        rotation_rigidity = 0
+        shear_rigidity = 0
+
+        pt1 = self.E * self.A / self.length
+        pt2 = (12 * (self.E * self.I) / self.length ** 3)*shear_rigidity
+        pt3 = (6 * (self.E * self.I) / self.length ** 2)*rotation_rigidity
+        pt4 = (4 * (self.E * self.I) / self.length)*rotation_rigidity
+
+        stiffness_matrix = np.array(
+            [[pt1, 0, 0, -pt1, 0, 0],
+                    [0, pt2, pt3, 0, -pt2, pt3],
+                    [0, pt3, pt4, 0, -pt3, pt4 / 2],
+                    [-pt1, 0, 0, pt1, 0, 0],
+                    [0, -pt2, -pt3, 0, pt2, -pt3],
+                    [0, pt3, pt4 / 2, 0, -pt3, pt4]],
+            dtype=np.float64)
+
+        return stiffness_matrix

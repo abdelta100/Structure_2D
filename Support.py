@@ -29,6 +29,10 @@ class Support(Node):
         support = Support(node, support_num, support_type)
         return support
 
+    def reset(self, reset_type='soft'):
+        super().reset(reset_type)
+        self.reaction: Reaction = Reaction()
+
     def setDOF(self, support_type: str = 'fixed'):
 
         # TODO AMEND FOR DOF > 3, in 3D Frame

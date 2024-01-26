@@ -28,7 +28,7 @@ class Node:
         self.FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
         self.netLoad: PrincipleForce2D = PrincipleForce2D(0, 0, 0) # Holds sum of fem and nodal loads
         self.disp: NodalDisplacement = NodalDisplacement(0, 0, 0)
-        self.nodalForces: dict = {"Fx": 0, "Fy": 0, "Mxy": 0}
+        # self.nodalForces: dict = {"Fx": 0, "Fy": 0, "Mxy": 0}
 
     @property
     def idnum(self):
@@ -106,3 +106,14 @@ class Node:
 
     def pushNodalForces(self):
         pass
+
+    def clearLoads(self):
+        self.nodalLoads: list[StaticLoad] = []
+
+    def reset(self, reset_type="soft"):
+        self.FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
+        self.netLoad: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
+        self.disp: NodalDisplacement = NodalDisplacement(0, 0, 0)
+        if reset_type == "hard":
+            self.clearLoads()
+

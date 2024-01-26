@@ -249,3 +249,11 @@ class StructureGlobal:
             summary += "FEM at Node# "+str(node.idnum)+" is "+str(node.FEM)+"\n"
 
         return summary
+
+    def reset(self, reset_type="soft"):
+        for node in self.nodes:
+            node.reset(reset_type)
+        for support in self.supports:
+            support.reset(reset_type)
+        for element in self.elements:
+            element.reset(reset_type)
