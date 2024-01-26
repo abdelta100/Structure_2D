@@ -21,10 +21,10 @@ class StructureGlobalHelper:
             x2 = element.j_Node.x
             y1 = element.i_Node.y
             y2 = element.j_Node.y
-            dx1 = element.i_Node.disp['Dx']
-            dx2 = element.j_Node.disp['Dx']
-            dy1 = element.i_Node.disp['Dy']
-            dy2 = element.j_Node.disp['Dy']
+            dx1 = element.i_Node.disp.dx
+            dx2 = element.j_Node.disp.dx
+            dy1 = element.i_Node.disp.dy
+            dy2 = element.j_Node.disp.dy
             # TODO implement the following later
 
             # Rxy1 = element.i_Node.y + DxScale * element.i_Node.disp['Dy']

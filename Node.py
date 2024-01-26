@@ -1,5 +1,6 @@
 from Load import StaticLoad, PointLoad, Moment
-from PrincipleForce import PrincipleForce
+from PrincipleDisplacement import NodalDisplacement
+from PrincipleForce import PrincipleForce2D
 
 
 class Node:
@@ -24,9 +25,9 @@ class Node:
         # self.RxzActive = True
         # TODO implement moment and displacement releases, maybe in the element
         self.nodalLoads: list[StaticLoad] = []
-        self.FEM: PrincipleForce = PrincipleForce(0, 0, 0)
+        self.FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
         self.netLoad: list[float] = [0, 0, 0]  # [Moment, Perp Reaction Force]
-        self.disp: dict = {"Dx": 0, "Dy": 0, "Rxy": 0}
+        self.disp: NodalDisplacement = NodalDisplacement(0, 0, 0)
         self.nodalForces: dict = {"Fx": 0, "Fy": 0, "Mxy": 0}
 
     @property

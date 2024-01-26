@@ -128,9 +128,9 @@ class StructureGlobal:
         for node in self.nodes:
             tempdisp = origOrderDisplacement[node.idnum * self.dof:(node.idnum + 1) * self.dof]
             # transformedtemdisp=np.matmul(nod)
-            node.disp["Dx"] = tempdisp[0]
-            node.disp["Dy"] = tempdisp[1]
-            node.disp["Rxy"] = tempdisp[2]
+            node.disp.dx = tempdisp[0]
+            node.disp.dy = tempdisp[1]
+            node.disp.rxy = tempdisp[2]
 
     def _pushReactions(self, orderedForceVector, permutationMatrix):
         # TODO figure out force/reaction push details since i'm not pushing anything to nodes here, just supports
