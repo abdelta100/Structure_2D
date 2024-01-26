@@ -28,7 +28,7 @@ class PrincipleDisplacement2D:
         return PrincipleDisplacement2D(Dx=-self.dx, Dy=-self.dy, Rxy=-self.rxy)
 
     def __str__(self):
-        representation = {"Fx": self.dx, "Fy": self.dy, "Mxy": self.rxy}
+        representation = {"Dx": self.dx, "Dy": self.dy, "Rxy": self.rxy}
         return str(representation)
 
     def __len__(self):

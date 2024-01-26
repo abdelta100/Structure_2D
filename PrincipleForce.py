@@ -18,11 +18,11 @@ class PrincipleForce2D:
 
     def __add__(self, other):
         # TODO find a more elegant solution idk
-        return PrincipleForce2D(Fx=self.fx + other.dx, Fy=self.fy + other.dy, Mxy=self.mxy + other.rxy)
+        return PrincipleForce2D(Fx=self.fx + other.fx, Fy=self.fy + other.fy, Mxy=self.mxy + other.mxy)
 
     def __sub__(self, other):
         # TODO find a more elegant solution idk
-        return PrincipleForce2D(Fx=self.fx - other.dx, Fy=self.fy - other.dy, Mxy=self.mxy - other.rxy)
+        return PrincipleForce2D(Fx=self.fx - other.fx, Fy=self.fy - other.fy, Mxy=self.mxy - other.mxy)
 
     def __neg__(self):
         return PrincipleForce2D(Fx=-self.fx, Fy=-self.fy, Mxy=-self.mxy)
