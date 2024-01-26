@@ -2,6 +2,12 @@ from abc import ABC
 
 from AuxillaryFunctions import *
 from PrincipleForce import PrincipleForce2D
+from LoadInterfaces import *
+
+
+class Load(ABC):
+    def __init__(self):
+        pass
 
 
 class StaticLoad(ABC):
@@ -14,41 +20,10 @@ class StaticLoad(ABC):
         """
         self.loadClass: str = "None"
         self.name: str = "None"
-        self.beamLength: float = 1
         # TODO implement local and global load application
 
-    def setBeamLength(self, length):
-        # TODO add property handlers idk
-        self.beamLength = length
 
-    def calcCentroid(self) -> float:
-        pass
-
-    def calcTotal(self) -> float:
-        pass
-
-    def calcFixedEndReactions(self) -> tuple[PrincipleForce2D, PrincipleForce2D]:
-        pass
-
-    def cleanInputs(self):
-        # TODO deal with either repeating code or adding unknown variables
-        # TODO think of moving this outside
-        if isinstance(self, TrapezoidalDistributedLoad):
-            for vdl in self.VDLset:
-                vdl.beamLength = self.beamLength
-                vdl.cleanInputs()
-        else:
-            if self.start < 0: self.start = 0
-            if self.start > self.beamLength: self.start = self.beamLength
-            if self.end > self.beamLength: self.end = self.beamLength
-            if self.end < 0: self.end = 0
-            if self.start > self.end: self.end = self.start
-
-    def magnitudeAtPoint(self, point):
-        pass
-
-
-class UniformDistributedLoad(StaticLoad):
+class UniformDistributedLoad(StaticLoad, MemberLoad, ForceLoad):
     def __init__(self, magnitude: float, start_location: float, end_location: float, angle: float = 270):
         """
         A uniformly distributed loading patter. Has constant magnitude over its distance of application.
@@ -110,8 +85,15 @@ class UniformDistributedLoad(StaticLoad):
         else:
             return 0
 
+    def cleanInputs(self):
+        if self.start < 0: self.start = 0
+        if self.start > self.beamLength: self.start = self.beamLength
+        if self.end > self.beamLength: self.end = self.beamLength
+        if self.end < 0: self.end = 0
+        if self.start > self.end: self.end = self.start
 
-class PointLoad(StaticLoad):
+
+class PointLoad(StaticLoad, NodeLoad, ForceLoad):
     def __init__(self, magnitude: float, angle: float = 0, local=False):
         """
         A point load that can only be applied on Nodes (NOT members/elements).
@@ -163,7 +145,7 @@ class PointLoad(StaticLoad):
         return self.magnitude
 
 
-class PointLoadMember(PointLoad):
+class PointLoadMember(PointLoad, MemberLoad, ForceLoad):
     def __init__(self, magnitude: float, location: float, angle: float = 270):
         """
         A point Load object that is applied on a member. Different from PointLoad object which is built for application on a node.
@@ -217,8 +199,12 @@ class PointLoadMember(PointLoad):
         else:
             return 0
 
+    def cleanInputs(self):
+        if self.location < 0: self.start = 0
+        if self.location > self.beamLength: self.start = self.beamLength
 
-class VaryingDistributedLoad(StaticLoad):
+
+class VaryingDistributedLoad(StaticLoad, MemberLoad, ForceLoad):
     def __init__(self, start_magnitude: float, end_magnitude: float, start_location: float, end_location: float,
                  angle: float = 270):
         """
@@ -335,8 +321,15 @@ class VaryingDistributedLoad(StaticLoad):
         else:
             return 0
 
+    def cleanInputs(self):
+        if self.start < 0: self.start = 0
+        if self.start > self.beamLength: self.start = self.beamLength
+        if self.end > self.beamLength: self.end = self.beamLength
+        if self.end < 0: self.end = 0
+        if self.start > self.end: self.end = self.start
 
-class Moment(StaticLoad):
+
+class Moment(StaticLoad, NodeLoad, MomentLoad):
     def __init__(self, magnitude: float):
         """
         A moment load that can only be applied on Nodes (NOT members/elements)
@@ -359,7 +352,7 @@ class Moment(StaticLoad):
             return self
 
 
-class MomentMember(Moment):
+class MomentMember(Moment, MemberLoad, MomentLoad):
     # TODO figure moment fem transfer in case moment is not at node
     def __init__(self, magnitude: float, location: float):
         """
@@ -454,3 +447,8 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
         else:
             # MARKER: This else should work as intended even if its with for not if, but marker here anyway.
             return 0
+
+    def cleanInputs(self):
+        for vdl in self.VDLset:
+            vdl.beamLength = self.beamLength
+            vdl.cleanInputs()
