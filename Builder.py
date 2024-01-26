@@ -52,7 +52,9 @@ structure.supports = supports
 loads: list[StaticLoad] = []
 # Each load class takes different input parameters, see documentation
 loads.append(PointLoad(20, angle=0))
+loads.append(TrapezoidalDistributedLoad([2, 6, 13, 14],[10, 5, 8, 9], angle=110))
 loads.append(PointLoadMember(10, 10, angle=-90))
+loads.append(UniformDistributedLoad(10, 11, 16, -50))
 loads.append(VaryingDistributedLoad(10, 5, 4, 14, angle=-70))
 
 # Assign Loads to either element or node via .addLoad call
