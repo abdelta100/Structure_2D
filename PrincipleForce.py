@@ -1,13 +1,13 @@
 import math
 
 
-class PrincipleForce:
+class PrincipleForce2D:
     def __init__(self, Fx: float = 0, Fy: float = 0, Mxy: float = 0):
         """
         A 2D Principle Force class. Holds all types of non-dependent forces that can exist concurrently at a
         single point.
         X and Y Forces, and XY Moment in 2D, with respect to an arbitrary XY Plane.
-        :rtype: PrincipleForce
+        :rtype: PrincipleForce2D
         :param Fx: Force in x-direction
         :param Fy: Force in y-direction
         :param Mxy: Moment in xy-plane
@@ -18,14 +18,14 @@ class PrincipleForce:
 
     def __add__(self, other):
         # TODO find a more elegant solution idk
-        return PrincipleForce(Fx=self.fx + other.fx, Fy=self.fy + other.fy, Mxy=self.mxy + other.mxy)
+        return PrincipleForce2D(Fx=self.fx + other.dx, Fy=self.fy + other.dy, Mxy=self.mxy + other.rxy)
 
     def __sub__(self, other):
         # TODO find a more elegant solution idk
-        return PrincipleForce(Fx=self.fx - other.fx, Fy=self.fy - other.fy, Mxy=self.mxy - other.mxy)
+        return PrincipleForce2D(Fx=self.fx - other.dx, Fy=self.fy - other.dy, Mxy=self.mxy - other.rxy)
 
     def __neg__(self):
-        return PrincipleForce(Fx=-self.fx, Fy=-self.fy, Mxy=-self.mxy)
+        return PrincipleForce2D(Fx=-self.fx, Fy=-self.fy, Mxy=-self.mxy)
 
     def __str__(self):
         representation = {"Fx": self.fx, "Fy": self.fy, "Mxy": self.mxy}
@@ -45,7 +45,7 @@ class PrincipleForce:
         xComp, yComp = self.transform(angle)
         # multiplied by to avoid passing by reference
         mxy = self.mxy * 1.0
-        return PrincipleForce(xComp, yComp, mxy)
+        return PrincipleForce2D(xComp, yComp, mxy)
 
     def tolist(self):
         return [self.fx, self.fy, self.mxy]
@@ -75,12 +75,12 @@ class PrincipleForce:
         self._Mxy = Mxy
 
 
-class FEM(PrincipleForce):
+class FEM(PrincipleForce2D):
     def __init__(self, Fx: float = 0, Fy: float = 0, Mxy: float = 0):
         """
         Functionally the same as a 2D Principle Force class. Holds Fixed End Moments/Reactions at a node.
         X and Y Reactions, and XY Moment in 2D, with respect to an arbitrary XY Plane.
-        :rtype: PrincipleForce
+        :rtype: PrincipleForce2D
         :param Fx: FEM Force in x-direction
         :param Fy: FEM Force in y-direction
         :param Mxy: FEM Moment in xy-plane
@@ -88,12 +88,12 @@ class FEM(PrincipleForce):
         super().__init__(Fx, Fy, Mxy)
 
 
-class Reaction(PrincipleForce):
+class Reaction(PrincipleForce2D):
     def __init__(self, Fx: float = 0, Fy: float = 0, Mxy: float = 0):
         """
         Functionally the same as a 2D Principle Force class. Holds reactions at a support.
         X and Y Reactions, and XY Moment in 2D, with respect to an arbitrary XY Plane.
-        :rtype: PrincipleForce
+        :rtype: PrincipleForce2D
         :param Fx: Reaction Force in x-direction
         :param Fy: Reaction Force in y-direction
         :param Mxy: Reaction Moment in xy-plane

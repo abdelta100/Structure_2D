@@ -1,7 +1,7 @@
 from abc import ABC
 
 from AuxillaryFunctions import *
-from PrincipleForce import PrincipleForce
+from PrincipleForce import PrincipleForce2D
 
 
 class StaticLoad(ABC):
@@ -27,7 +27,7 @@ class StaticLoad(ABC):
     def calcTotal(self) -> float:
         pass
 
-    def calcFixedEndReactions(self) -> tuple[PrincipleForce, PrincipleForce]:
+    def calcFixedEndReactions(self) -> tuple[PrincipleForce2D, PrincipleForce2D]:
         pass
 
     def cleanInputs(self):
@@ -73,12 +73,12 @@ class UniformDistributedLoad(StaticLoad):
     def calcCentroid(self):
         return (self.end + self.start) / 2
 
-    def calcFixedEndReactions(self) -> tuple[PrincipleForce, PrincipleForce]:
+    def calcFixedEndReactions(self) -> tuple[PrincipleForce2D, PrincipleForce2D]:
         dist = (self.end - self.start)
         mid = self.calcCentroid()
         length = self.beamLength
         if dist == 0:
-            return PrincipleForce(0, 0, 0), PrincipleForce(0, 0, 0)
+            return PrincipleForce2D(0, 0, 0), PrincipleForce2D(0, 0, 0)
         perp_magnitude = self.magnitude * math.sin(self.angle)
         dN1 = mid
         dN2 = length - mid
@@ -94,8 +94,8 @@ class UniformDistributedLoad(StaticLoad):
         A1 = -par_magnitude_total * dN2 / (dN2 + dN1)
         A2 = -par_magnitude_total * dN1 / (dN1 + dN2)
 
-        iNodeFer = PrincipleForce(A1, V1, R1)
-        jNodeFer = PrincipleForce(A2, V2, R2)
+        iNodeFer = PrincipleForce2D(A1, V1, R1)
+        jNodeFer = PrincipleForce2D(A2, V2, R2)
 
         return iNodeFer, jNodeFer
 
@@ -181,7 +181,7 @@ class PointLoadMember(PointLoad):
     def calcCentroid(self):
         return self.location
 
-    def calcFixedEndReactions(self) -> tuple[PrincipleForce, PrincipleForce]:
+    def calcFixedEndReactions(self) -> tuple[PrincipleForce2D, PrincipleForce2D]:
         # TODO amend for axial force too
         length = self.beamLength
         dN1 = self.location
@@ -202,8 +202,8 @@ class PointLoadMember(PointLoad):
         A1 = -par_magnitude * dN2 / (dN2 + dN1)
         A2 = -par_magnitude * dN1 / (dN1 + dN2)
 
-        iNodeFer = PrincipleForce(A1, V1, R1)
-        jNodeFer = PrincipleForce(A2, V2, R2)
+        iNodeFer = PrincipleForce2D(A1, V1, R1)
+        jNodeFer = PrincipleForce2D(A2, V2, R2)
 
         return iNodeFer, jNodeFer
 
@@ -255,7 +255,7 @@ class VaryingDistributedLoad(StaticLoad):
         total = (self.end - self.start) * (self.end_magnitude + self.start_magnitude) / 2
         return total
 
-    def calcFixedEndReactions(self) -> tuple[PrincipleForce, PrincipleForce]:
+    def calcFixedEndReactions(self) -> tuple[PrincipleForce2D, PrincipleForce2D]:
         # TODO work on axial comp
 
         # s1=pre_dist
@@ -267,7 +267,7 @@ class VaryingDistributedLoad(StaticLoad):
         s3 = self.beamLength - self.end
 
         if s2 == 0:
-            return PrincipleForce(0, 0, 0), PrincipleForce(0, 0, 0)
+            return PrincipleForce2D(0, 0, 0), PrincipleForce2D(0, 0, 0)
 
         # Split into a triangular load and a rectangular load
         # Triangular Load
@@ -298,8 +298,8 @@ class VaryingDistributedLoad(StaticLoad):
         A1 = -tri_total_par * tri_centr / (self.beamLength)
         A2 = -tri_total_par * (self.beamLength - tri_centr) / (self.beamLength)
 
-        iNodeFer = PrincipleForce(A1, V1, R1)
-        jNodeFer = PrincipleForce(A2, V2, R2)
+        iNodeFer = PrincipleForce2D(A1, V1, R1)
+        jNodeFer = PrincipleForce2D(A2, V2, R2)
 
         # Temporary rectangular load to handle rectangular portion calculation
         temprect = UniformDistributedLoad(self.start_magnitude, self.start, self.end, angle=rad2degree(self.angle))
@@ -374,7 +374,7 @@ class MomentMember(Moment):
     def calcCentroid(self):
         return self.location
 
-    def calcFixedEndReactions(self) -> tuple[PrincipleForce, PrincipleForce]:
+    def calcFixedEndReactions(self) -> tuple[PrincipleForce2D, PrincipleForce2D]:
         mag = self.magnitude
         dist = self.location
         length = self.beamLength
@@ -387,8 +387,8 @@ class MomentMember(Moment):
         A1 = 0
         A2 = 0
 
-        iNodeFer = PrincipleForce(A1, V1, R1)
-        jNodeFer = PrincipleForce(A2, V2, R2)
+        iNodeFer = PrincipleForce2D(A1, V1, R1)
+        jNodeFer = PrincipleForce2D(A2, V2, R2)
 
         return iNodeFer, jNodeFer
 
@@ -435,9 +435,9 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
         # TODO create a cleaner for entry data. i.e when there are two different load mags at the same point
         # pass
 
-    def calcFixedEndReactions(self) -> tuple[PrincipleForce, PrincipleForce]:
-        iNodeFer = PrincipleForce(0, 0, 0)
-        jNodeFer = PrincipleForce(0, 0, 0)
+    def calcFixedEndReactions(self) -> tuple[PrincipleForce2D, PrincipleForce2D]:
+        iNodeFer = PrincipleForce2D(0, 0, 0)
+        jNodeFer = PrincipleForce2D(0, 0, 0)
 
         for vdl in self.VDLset:
             iNodeFerTemp, jNodeFerTemp = vdl.calcFixedEndReactions()
