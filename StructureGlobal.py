@@ -6,6 +6,7 @@ from ElementHelperFunctions import ElementHelper
 from Load import StaticLoad
 from Node import Node
 from Support import Support
+from Constants import *
 
 
 class StructureGlobal:
@@ -18,7 +19,7 @@ class StructureGlobal:
         self.supports: list[Support] = []
         self.loads: list[StaticLoad] = []
         self.stiffnessMatrix: np.ndarray = np.zeros(shape=(len(self.nodes) * 3, len(self.nodes) * 3))
-        self.dof = 3
+        self.dof = DOF
 
     def createGlobalStiffnessMatrix(self):
         # TODO include element node releases or something
@@ -116,7 +117,7 @@ class StructureGlobal:
         for node in self.nodes:
             # TODO reconcile self.dof and len netload,
             # both should be same but different variables are referenced may cause issue
-            appLoads[node.idnum * self.dof:node.idnum * self.dof + len(node.netLoad)] = node.netLoad
+            appLoads[node.idnum * self.dof:node.idnum * self.dof + len(node.netLoad)] = node.netLoad.tolist()
 
         orderedLoads = np.matmul(permutationMatrix, appLoads)
         return orderedLoads

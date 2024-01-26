@@ -26,7 +26,7 @@ class Node:
         # TODO implement moment and displacement releases, maybe in the element
         self.nodalLoads: list[StaticLoad] = []
         self.FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
-        self.netLoad: list[float] = [0, 0, 0]  # [Moment, Perp Reaction Force]
+        self.netLoad: PrincipleForce2D = PrincipleForce2D(0, 0, 0) # Holds sum of fem and nodal loads
         self.disp: NodalDisplacement = NodalDisplacement(0, 0, 0)
         self.nodalForces: dict = {"Fx": 0, "Fy": 0, "Mxy": 0}
 
@@ -100,7 +100,9 @@ class Node:
         Mxy += self.FEM.mxy
         # TODO check if the following line should contain load objects or just magnitude
         # TODO also see if i should use a dict object here or not
-        self.netLoad = [Fx, Fy, Mxy]
+        self.netLoad.fx = Fx
+        self.netLoad.fy = Fy
+        self.netLoad.mxy = Mxy
 
     def pushNodalForces(self):
         pass
