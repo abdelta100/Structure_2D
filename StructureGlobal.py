@@ -18,13 +18,13 @@ class StructureGlobal:
         self.elements: list[Element] = []
         self.supports: list[Support] = []
         self.loads: list[StaticLoad] = []
-        self.stiffnessMatrix: np.ndarray = np.zeros(shape=(len(self.nodes) * 3, len(self.nodes) * 3))
         self.dof = DOF
+        self.stiffnessMatrix: np.ndarray = np.zeros(shape=(len(self.nodes) * self.dof, len(self.nodes) * self.dof))
 
     def createGlobalStiffnessMatrix(self):
         # TODO include element node releases or something
         # transformedElementMatrices=[element.transformedMatrix for element in self.elements]
-        globalStiffnessMatrix = np.zeros(shape=(len(self.nodes) * 3, len(self.nodes) * 3), dtype=np.float64)
+        globalStiffnessMatrix = np.zeros(shape=(len(self.nodes) * self.dof, len(self.nodes) * self.dof), dtype=np.float64)
         for element in self.elements:
             i_node = element.i_Node.idnum
             j_node = element.j_Node.idnum
@@ -113,10 +113,11 @@ class StructureGlobal:
         self.transferLoadstoNodes()
         self.collectNodalLoads()
         # unordered applied load vector
-        appLoads = np.zeros(shape=len(self.nodes) * 3)
+        appLoads = np.zeros(shape=len(self.nodes) * self.dof)
         for node in self.nodes:
             # TODO reconcile self.dof and len netload,
             # both should be same but different variables are referenced may cause issue
+            #netload references a principleforce2d class, which has a hardcoded length of 3, could also use self.dof here
             appLoads[node.idnum * self.dof:node.idnum * self.dof + len(node.netLoad)] = node.netLoad.tolist()
 
         orderedLoads = np.matmul(permutationMatrix, appLoads)

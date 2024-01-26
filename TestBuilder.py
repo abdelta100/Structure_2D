@@ -101,4 +101,4 @@ spr.graphNodalDisplacementGraph(structure=structure)
 # TODO add a function that prints model summary, maybe use __repr__ or something for individual elements
 # TODO n order analysis
 # TODO add section rotation capability and 1-axis 2-axis Moment of Inertia
-# TODO Big probelm regarding MOMENTS AND DIRECTIONS etc
+# TODO do something about dof in structure and dof avaialable in principleforce/displacement 2D classes
