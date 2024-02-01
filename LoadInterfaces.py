@@ -30,7 +30,7 @@ class MemberLoad(ABC):
     def calcTotal(self) -> float:
         pass
 
-    def magnitudeAtPoint(self, point):
+    def magnitudeAtPoint(self, point: float, axis: str = "perpendicular"):
         pass
 
     def cleanInputs(self):
@@ -50,3 +50,12 @@ class NodeLoad(ABC):
 class DynamicLoad(ABC):
     def __init__(self):
         pass
+
+class ConcentratedLoad(MemberLoad):
+    def __init__(self, magnitude):
+        super().__init__()
+        self.magnitude = magnitude
+
+class DistributedLoad(MemberLoad):
+    def __init__(self):
+        super().__init__()
