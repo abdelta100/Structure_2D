@@ -21,6 +21,7 @@ elements: list[Element] = []
 elements.append(Element(nodes[0], nodes[1]))
 elements.append(Element(nodes[1], nodes[2]))
 elements.append(Element(nodes[2], nodes[3]))
+elements.append(Element(nodes[0], nodes[3]))
 
 # Create custom materials and sections for use, or just let the defaults be.
 # TestMaterial and Section  class used here to avoid calculation of section and material dims etc.,
@@ -54,11 +55,12 @@ loads: list[StaticLoad] = []
 loads.append(PointLoad(20, angle=0))
 loads.append(TrapezoidalDistributedLoad([2, 6, 13, 14],[10, 5, 8, 9], angle=110))
 loads.append(PointLoadMember(10, 10, angle=-90))
-loads.append(UniformDistributedLoad(10, 11, 16, -50))
+loads.append(UniformDistributedLoad(10, 4, 16, -90))
 loads.append(VaryingDistributedLoad(10, 5, 4, 14, angle=-70))
 
 # Assign Loads to either element or node via .addLoad call
-elements[1].addLoad(loads[1])
+elements[1].addLoad(loads[2])
+elements[3].addLoad(loads[3])
 # nodes[1].addLoad(loads[0])
 
 # Run analysis

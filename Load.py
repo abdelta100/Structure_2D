@@ -352,7 +352,7 @@ class Moment(StaticLoad, NodeLoad, MomentLoad):
             return self
 
 
-class MomentMember(Moment, MemberLoad, MomentLoad):
+class MomentMember(StaticLoad, ConcentratedLoad, MomentLoad):
     # TODO figure moment fem transfer in case moment is not at node
     def __init__(self, magnitude: float, location: float):
         """
@@ -361,7 +361,8 @@ class MomentMember(Moment, MemberLoad, MomentLoad):
         :param magnitude: Magnitude of moment load. CCW is positive.
         :param location: Distance along member (from i-node to j-node) at which load is applied.
         """
-        super().__init__(magnitude)
+        super().__init__()
+        self.magnitude = magnitude
         self.location = location
 
     def calcCentroid(self):
