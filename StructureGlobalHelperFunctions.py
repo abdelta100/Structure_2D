@@ -45,7 +45,7 @@ class StructureGlobalHelper:
         plt.show()
 
     @staticmethod
-    def normalizeDisp(allDisp, base_pos, maxDxScale, maxDyScale):
+    def normalizeDisp(allDisp, base_pos, maxDxScale, maxDyScale, split_axes=False):
         """
         Normalizes the displacements returned from analysis so that the values given to displacement structure plotter
         are proportional to their true magnitudes and represent the deformed shape adequately.
@@ -64,8 +64,12 @@ class StructureGlobalHelper:
         x_max = max(x_max, float(absdisparray[0, 1]), float(absdisparray[-1, 1]))
         y_max = np.max(absdisparray[:, 2])
         y_max = max(y_max, float(absdisparray[0, 3]), float(absdisparray[-1, 3]))
-        print(x_max)
-        print(y_max)
+        # print(x_max)
+        # print(y_max)
+        if not split_axes:
+            absolute_max=max(x_max, y_max)
+            x_max = absolute_max
+            y_max = absolute_max
 
         unitScaledDisp = np.array([maxDxScale / x_max, maxDxScale / x_max, maxDyScale / y_max, maxDyScale / y_max])
         scaledDisp = disparray * unitScaledDisp
