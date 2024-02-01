@@ -85,3 +85,9 @@ class FixedEndMember(MemberEndRelease2D):
         :rtype: FixedEndMember
         """
         super().__init__()
+
+class PinnedEndMember(MemberEndRelease2D):
+    def __init__(self):
+        super().__init__()
+        self.mxy1 = 0
+        self.mxy2 = 0
