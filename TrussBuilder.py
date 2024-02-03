@@ -1,5 +1,5 @@
 from CrossSection import TestRectangularCrossSection
-from Element import Element
+from Element import Element, TrussElement
 from Load import *
 from Material import TestMaterial
 from Node import Node
@@ -20,13 +20,13 @@ nodes.append(Node(40, 0, 4))
 elements: list[Element] = []
 # Element takes its i-node and j-node in init call, working on assigning material and section from init call too, \
 # but uses default values for material and section at init
-elements.append(Element(nodes[0], nodes[1]))
-elements.append(Element(nodes[1], nodes[2]))
-elements.append(Element(nodes[2], nodes[3]))
-elements.append(Element(nodes[3], nodes[4]))
-elements.append(Element(nodes[1], nodes[3]))
-elements.append(Element(nodes[0], nodes[2]))
-elements.append(Element(nodes[2], nodes[4]))
+elements.append(TrussElement(nodes[0], nodes[1]))
+elements.append(TrussElement(nodes[1], nodes[2]))
+elements.append(TrussElement(nodes[2], nodes[3]))
+elements.append(TrussElement(nodes[3], nodes[4]))
+elements.append(TrussElement(nodes[1], nodes[3]))
+elements.append(TrussElement(nodes[0], nodes[2]))
+elements.append(TrussElement(nodes[2], nodes[4]))
 
 
 # Create custom materials and sections for use, or just let the defaults be.
