@@ -269,35 +269,34 @@ class Element:
     def endReleaseHandler3(self, localStiffness):
         # create a release vector, ie convert to numpy array
         kr = self.endReleases.tolist()
-        release: np.ndarray = np.array(kr)
-        base_transformation = np.eye(N=release.shape[0])
+        fixity: np.ndarray = np.array(kr)
+        fixity_diag = np.diag(fixity)
+        release_diag = np.diag(1-fixity)
+        base_transformation = np.eye(N=fixity.shape[0])
         # create an array that stores repesantative values at indices of dependant dofs, could use better implementation
-        slave_dof_copy_index = np.zeros(shape=(release.shape[0], release.shape[0]))
-        # create a list that stores indices of dependant dofs, maybe deprecare
-        z_index = []
-        for i in range(len(kr)):
-            if kr[i] == 0:
-                z_index.append(i)
-
-        # copy representative values of dependant dofs at indices
-        for i in z_index:
-            for j in z_index:
-                slave_dof_copy_index[i,j] = 1
+        slave_dof_copy_index = np.matmul(release_diag,np.matmul(np.ones(shape=(fixity.shape[0], fixity.shape[0])), release_diag))
 
         # create an array to store coefficiens of dependant dofs at their specific indices, check if element wise mult is working
-        slave_dof = localStiffness * slave_dof_copy_index
+        slave_dof = localStiffness * -slave_dof_copy_index
         # rpobably don't need master_dof, stores independant dof coefficents
         master_dof = copy.deepcopy(localStiffness)
         master_dof = -(master_dof+np.multiply(slave_dof_copy_index,-localStiffness))
         # add 1s to slave_dof, at independent dof indices, results in slave_rref_gen
-        add_to_slave_rref_gen=np.eye(N=release.shape[0])-slave_dof_copy_index
+        add_to_slave_rref_gen=np.matmul(np.eye(N=fixity.shape[0]), fixity_diag)
         slave_rref_gen = np.linalg.pinv(slave_dof) + add_to_slave_rref_gen
         # dont think i need the following
         # master_dof = np.matmul(master_dof, slave_rref_gen)
         # slave_to_master = np.eye(N=release.shape[0])
 
-        mod_stiffness=np.matmul(slave_rref_gen, localStiffness)
-        final_mat=(1-np.matmul(release, mod_stiffness))*mod_stiffness
+        mod_stiffness = np.matmul(slave_rref_gen, localStiffness)
+        row_weight = np.matmul(mod_stiffness, release_diag)
+        subtract = np.matmul(row_weight, mod_stiffness)
+        final_mat = mod_stiffness+subtract
+        # in the avove few lines there maybe an issue while concising due to me thinking we need to use 1-row weight,
+        # but instead it may require I-row weight, also some buggery with matmul or elementwise mult
+
+        # print(final_mat)
+        # Probelm above, becuase mod_stiffness is calc some other way idk????
         # for i in z_index:
         #     # figure out concise notation for this
         #     slave_to_master[i,:] = master_dof[i, :]
