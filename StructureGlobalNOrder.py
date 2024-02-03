@@ -1,4 +1,4 @@
-from StructureGlobal import StructureGlobal
+from Core.StructureGlobal import StructureGlobal
 
 class StructureGlobalNOrder(StructureGlobal):
     def __init__(self):

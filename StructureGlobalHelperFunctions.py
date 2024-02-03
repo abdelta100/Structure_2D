@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from StructureGlobal import StructureGlobal
+from Core.StructureGlobal import StructureGlobal
 
 
 class StructureGlobalHelper:

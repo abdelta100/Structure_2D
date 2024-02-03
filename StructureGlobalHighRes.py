@@ -1,7 +1,7 @@
-from Element import Element
-from Load import *
-from Node import Node
-from StructureGlobal import StructureGlobal
+from Core.Element import Element
+from Core.Load import *
+from Core.Node import Node
+from Core.StructureGlobal import StructureGlobal
 from ElementHelperFunctions import ElementHelper
 
 

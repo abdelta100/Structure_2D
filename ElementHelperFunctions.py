@@ -1,9 +1,9 @@
 import copy
 
-from Element import Element
-from Node import Node
+from Core.Element import Element
+from Core.Node import Node
 from AuxillaryFunctions import rad2degree
-from Load import PointLoadMember, MomentMember, UniformDistributedLoad, TrapezoidalDistributedLoad, \
+from Core.Load import PointLoadMember, MomentMember, UniformDistributedLoad, TrapezoidalDistributedLoad, \
     VaryingDistributedLoad
 
 
