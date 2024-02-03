@@ -266,7 +266,7 @@ class Element:
                 pass
         pass
 
-    def endReleaseHandler3(self, localStiffness):
+    def endReleaseHandler(self, localStiffness):
         # create a release vector, ie convert to numpy array
         kr = self.endReleases.tolist()
         fixity: np.ndarray = np.array(kr)
@@ -278,20 +278,17 @@ class Element:
 
         # create an array to store coefficiens of dependant dofs at their specific indices, check if element wise mult is working
         slave_dof = localStiffness * -slave_dof_copy_index
-        # rpobably don't need master_dof, stores independant dof coefficents
-        master_dof = copy.deepcopy(localStiffness)
-        master_dof = -(master_dof+np.multiply(slave_dof_copy_index,-localStiffness))
+
         # add 1s to slave_dof, at independent dof indices, results in slave_rref_gen
         add_to_slave_rref_gen=np.matmul(np.eye(N=fixity.shape[0]), fixity_diag)
         slave_rref_gen = np.linalg.pinv(slave_dof) + add_to_slave_rref_gen
-        # dont think i need the following
-        # master_dof = np.matmul(master_dof, slave_rref_gen)
-        # slave_to_master = np.eye(N=release.shape[0])
 
+        # final leg. substituting values of all slave_dofs including dependancy on independant dof into the modified
+        # stiffness matrix, and gathering the result.
         mod_stiffness = np.matmul(slave_rref_gen, localStiffness)
         row_weight = np.matmul(mod_stiffness, release_diag)
-        subtract = np.matmul(row_weight, mod_stiffness)
-        final_mat = mod_stiffness+subtract
+        slave_dof_terms_eq = np.matmul(row_weight, mod_stiffness)
+        final_mat = mod_stiffness+slave_dof_terms_eq
         # in the avove few lines there maybe an issue while concising due to me thinking we need to use 1-row weight,
         # but instead it may require I-row weight, also some buggery with matmul or elementwise mult
 
@@ -306,12 +303,6 @@ class Element:
         # isolate just the transformation matrix from here plz
         return final_mat
 
-
-
-    def endReleaseHandler(self, localStiffess):
-        release=self.endReleases.tolist()
-        if release == [1,1,0,1,1,0]:
-            pass
 
     @property
     def i_Node(self):
