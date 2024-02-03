@@ -16,11 +16,11 @@ from MemberEndRelease import FixedEndMember, MemberEndRelease2D, PinnedEndMember
 
 # TODO Incorporate a 2D general frame element class here by renaming element class, and set element class  to inherit from it
 
-class Element:
+class GeneralFrameElement2D:
     def __init__(self, i: Node, j: Node):
         """
         A 2D General Frame Element class. Linear element, has 3 DOF at each node, and 2 nodes.
-        :rtype: Element
+        :rtype: GeneralFrameElement2D
         :param i: Node object for i-node of element
         :param j: Node object for j-node of element
         """
@@ -340,39 +340,27 @@ class Element:
         self.length = self.calc_length()
 
 
-class Element2():
-    # ALiasing generalframe element 2d requires somework, esp in sudiv elements where the element are themselves not 2D
+class FrameElement(GeneralFrameElement2D):
+    # Aliasing generalframe element 2d requires somework, esp in sudiv elements where the element are themselves not 2D
     # General Frame
-    def __init__(self):
-        pass
-
-class TrussElement(Element):
     def __init__(self, i: Node, j: Node):
+        """
+        A 2D Frame Element class. Linear element, has 3 DOF at each node, and 2 nodes.
+        :rtype: FrameElement
+        :param i: Node object for i-node of element
+        :param j: Node object for j-node of element
+        """
+        super().__init__(i, j)
+
+class TrussElement(GeneralFrameElement2D):
+    def __init__(self, i: Node, j: Node):
+        """
+        A 2D Truss Element class. Linear element, has 3 DOF at each node, and 2 nodes.
+        :rtype: TrussElement
+        :param i: Node object for i-node of element
+        :param j: Node object for j-node of element
+        """
         super().__init__(i, j)
         self.endReleases: MemberEndRelease2D = PinnedEndMember()
         # self.recalculateMatrices()
 
-    # def elementStiffnessMatrix(self):
-    #     # Partial Term 1: EA/L
-    #     # Partial Term 2: 12EI/L^3
-    #     # Partial Term 3: 6EI/L^2
-    #     # Partial Term 4: 4EI/L
-    #
-    #     rotation_rigidity = 0
-    #     shear_rigidity = 0
-    #
-    #     pt1 = self.E * self.A / self.length
-    #     pt2 = (12 * (self.E * self.I) / self.length ** 3)*shear_rigidity
-    #     pt3 = (6 * (self.E * self.I) / self.length ** 2)*rotation_rigidity
-    #     pt4 = (4 * (self.E * self.I) / self.length)*rotation_rigidity
-    #
-    #     stiffness_matrix = np.array(
-    #         [[pt1, 0, 0, -pt1, 0, 0],
-    #                 [0, pt2, pt3, 0, -pt2, pt3],
-    #                 [0, pt3, pt4, 0, -pt3, pt4 / 2],
-    #                 [-pt1, 0, 0, pt1, 0, 0],
-    #                 [0, -pt2, -pt3, 0, pt2, -pt3],
-    #                 [0, pt3, pt4 / 2, 0, -pt3, pt4]],
-    #         dtype=np.float64)
-    #
-    #     return stiffness_matrix
