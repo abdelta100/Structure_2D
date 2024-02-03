@@ -36,18 +36,21 @@ class Element:
         # TODO adds x or axial comp in nodeFEM
         self.node1FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
         self.node2FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
+        self.FEM_Identity=np.eye(N=2*len(self.node1FEM))
         self.localStiffnessMatrix: np.ndarray = np.zeros(shape=(6, 6))
         self.transformationMatrix: np.ndarray = np.zeros(shape=(6, 6))
         self.globalStiffnessMatrix: np.ndarray = np.zeros(shape=(6, 6))
         self.endReleases: MemberEndRelease2D = FixedEndMember()
         # try:
         self.length: float = max(euclidean(self._i_Node.pos, self._j_Node.pos), 0.001)
-        self.recalculateMatrices()
         # except:
         #     pass
             # self.length=0.001
             # self.recalculateMatrices()
         # TODO add something about self weight
+
+    def preprocessor(self):
+        self.recalculateMatrices()
 
     def elementStiffnessMatrix(self):
         # Partial Term 1: EA/L
@@ -69,7 +72,8 @@ class Element:
                     [0, pt3, pt4 / 2, 0, -pt3, pt4]],
             dtype=np.float64)
 
-        end_release_modification_matrix=self.endReleaseHandler3(stiffness_matrix)
+        stiffness_matrix, FEM_identity = self.endReleaseHandler(stiffness_matrix)
+        self.FEM_Identity = FEM_identity
 
         return stiffness_matrix
 
@@ -126,6 +130,14 @@ class Element:
             iNodeLoad -= iNodeLoadTemp
             jNodeLoad -= jNodeLoadTemp
 
+        endReleaseHandledFEM = np.matmul(self.FEM_Identity, np.array(iNodeLoad.tolist()+jNodeLoad.tolist()))
+        iNodeLoad.Fx = endReleaseHandledFEM[0]
+        iNodeLoad.Fy = endReleaseHandledFEM[1]
+        iNodeLoad.Mxy = endReleaseHandledFEM[2]
+        jNodeLoad.Fx = endReleaseHandledFEM[3]
+        jNodeLoad.Fy = endReleaseHandledFEM[4]
+        jNodeLoad.Mxy = endReleaseHandledFEM[5]
+
         self.node1FEM = iNodeLoad
         self.node2FEM = jNodeLoad
 
@@ -163,7 +175,6 @@ class Element:
         self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
 
     def elementEndForces(self):
-
         pass
 
     def calculateInternalForcesAndDisplacements(self):
@@ -288,10 +299,14 @@ class Element:
         mod_stiffness = np.matmul(slave_rref_gen, localStiffness)
         row_weight = np.matmul(mod_stiffness, release_diag)
         slave_dof_terms_eq = np.matmul(row_weight, mod_stiffness)
-        final_mat = mod_stiffness+slave_dof_terms_eq
+        final_mat_stiffness = mod_stiffness+slave_dof_terms_eq
         # in the avove few lines there maybe an issue while concising due to me thinking we need to use 1-row weight,
         # but instead it may require I-row weight, also some buggery with matmul or elementwise mult
 
+        fem_identity = np.eye(fixity.shape[0])
+        mod_fem = np.matmul(slave_rref_gen, fem_identity)
+        slave_dof_terms_eq_fem = np.matmul(row_weight, mod_fem)
+        final_fem_identity = mod_fem+slave_dof_terms_eq_fem
         # print(final_mat)
         # Probelm above, becuase mod_stiffness is calc some other way idk????
         # for i in z_index:
@@ -301,8 +316,10 @@ class Element:
         # final_master_dof = np.matmul(master_dof, slave_to_master)
         a = 3
         # isolate just the transformation matrix from here plz
-        return final_mat
+        return final_mat_stiffness, final_fem_identity
 
+    def endReleaseHandlerForFEM(self):
+        pass
 
     @property
     def i_Node(self):

@@ -158,7 +158,12 @@ class StructureGlobal:
         """
         # self._structureModelIntegrityChecker()
         self._singleFixedBeamHandler()
+        self._preprocessor()
         self._solver()
+
+    def _preprocessor(self):
+        for element in self.elements:
+            element.preprocessor()
 
     def findAllNodalForcesPostAnalysis(self):
         nodeAdjacencyMatrix, elemNodeIntersection = self.createElementNodeIntersectionMatrix()
