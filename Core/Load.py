@@ -2,7 +2,7 @@ from abc import ABC
 
 from AuxillaryFunctions import *
 from PrincipleForce import PrincipleForce2D
-from LoadInterfaces import *
+from .LoadInterfaces import *
 
 
 class Load(ABC):

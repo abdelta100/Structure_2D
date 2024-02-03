@@ -1,12 +1,12 @@
 import numpy as np
 
 from AuxillaryFunctions import matrixStabilityCheck
-from Element import Element
+from .Element import Element
 from ElementHelperFunctions import ElementHelper
-from Load import StaticLoad
-from Node import Node
-from Support import Support
-from Constants import *
+from .Load import StaticLoad
+from .Node import Node
+from .Support import Support
+from .Constants import *
 
 
 class StructureGlobal:

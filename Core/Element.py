@@ -5,11 +5,11 @@ import numpy as np
 # from scipy.spatial.distance import euclidean
 from AuxillaryFunctions import distance as euclidean
 
-from CrossSection import DefaultRectangularCrossSection, CrossSection
-from Load import StaticLoad, UniformDistributedLoad, VaryingDistributedLoad, PointLoadMember, MomentMember
-from LoadInterfaces import MemberLoad
-from Material import DefaultMaterial, Material
-from Node import Node
+from .CrossSection import DefaultRectangularCrossSection, CrossSection
+from .Load import StaticLoad, UniformDistributedLoad, VaryingDistributedLoad, PointLoadMember, MomentMember
+from .LoadInterfaces import MemberLoad
+from .Material import DefaultMaterial, Material
+from .Node import Node
 from PrincipleForce import PrincipleForce2D
 from MemberEndRelease import FixedEndMember, MemberEndRelease2D, PinnedEndMember
 

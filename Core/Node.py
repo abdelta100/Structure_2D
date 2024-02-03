@@ -1,4 +1,4 @@
-from Load import StaticLoad, PointLoad, Moment
+from .Load import StaticLoad, PointLoad, Moment
 from PrincipleDisplacement import NodalDisplacement
 from PrincipleForce import PrincipleForce2D
 
