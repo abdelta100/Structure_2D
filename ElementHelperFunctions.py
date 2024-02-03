@@ -1,6 +1,6 @@
 import copy
 
-from Core.Element import Element
+from Core.Element import GeneralFrameElement2D
 from Core.Node import Node
 from AuxillaryFunctions import rad2degree
 from Core.Load import PointLoadMember, MomentMember, UniformDistributedLoad, TrapezoidalDistributedLoad, \
@@ -9,7 +9,7 @@ from Core.Load import PointLoadMember, MomentMember, UniformDistributedLoad, Tra
 
 class ElementHelper:
     @staticmethod
-    def copyElementPropertiesSansNodes(element: Element, clearLoads=True) -> Element:
+    def copyElementPropertiesSansNodes(element: GeneralFrameElement2D, clearLoads=True) -> GeneralFrameElement2D:
         newElem = copy.deepcopy(element)
         #TODO jugaar here, initialzed to random node
         newElem.i_Node = Node(0,0, -999)

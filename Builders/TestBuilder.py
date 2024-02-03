@@ -1,7 +1,7 @@
 from math import cos, sin
 
 from Core.CrossSection import TestRectangularCrossSection
-from Core.Element import Element
+from Core.Element import GeneralFrameElement2D, FrameElement
 from Core.Load import *
 from Core.Material import TestMaterial
 from Core.Node import Node
@@ -29,14 +29,14 @@ nodes.append(Node(20, 0, 5))
 mater = TestMaterial(E=4176000)
 section = TestRectangularCrossSection(A=(0.0625), I=(3.255E-4))
 
-elements: list[Element] = []
+elements: list[GeneralFrameElement2D] = []
 #TODO add a kwarg or something for direct assigning material and section in instance call
-elements.append(Element(nodes[0], nodes[1]))
-elements.append(Element(nodes[1], nodes[2]))
-elements.append(Element(nodes[2], nodes[3]))
-elements.append(Element(nodes[3], nodes[4]))
-elements.append(Element(nodes[4], nodes[5]))
-elements.append(Element(nodes[1], nodes[4]))
+elements.append(FrameElement(nodes[0], nodes[1]))
+elements.append(FrameElement(nodes[1], nodes[2]))
+elements.append(FrameElement(nodes[2], nodes[3]))
+elements.append(FrameElement(nodes[3], nodes[4]))
+elements.append(FrameElement(nodes[4], nodes[5]))
+elements.append(FrameElement(nodes[1], nodes[4]))
 # elements.append(Element(nodes[1], nodes[4]))
 # elements.append(Element(nodes[4], nodes[5]))
 # elements.append(Element(nodes[5], nodes[2]))

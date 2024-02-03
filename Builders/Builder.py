@@ -1,5 +1,5 @@
 from Core.CrossSection import TestRectangularCrossSection
-from Core.Element import Element
+from Core.Element import GeneralFrameElement2D, FrameElement
 from Core.Load import *
 from Core.Material import TestMaterial
 from Core.Node import Node
@@ -15,13 +15,13 @@ nodes.append(Node(20, 20, 2))
 nodes.append(Node(20, 0, 3))
 
 # Create a Node List and assign node instances to it
-elements: list[Element] = []
+elements: list[GeneralFrameElement2D] = []
 # Element takes its i-node and j-node in init call, working on assigning material and section from init call too, \
 # but uses default values for material and section at init
-elements.append(Element(nodes[0], nodes[1]))
-elements.append(Element(nodes[1], nodes[2]))
-elements.append(Element(nodes[2], nodes[3]))
-elements.append(Element(nodes[0], nodes[3]))
+elements.append(FrameElement(nodes[0], nodes[1]))
+elements.append(FrameElement(nodes[1], nodes[2]))
+elements.append(FrameElement(nodes[2], nodes[3]))
+elements.append(FrameElement(nodes[0], nodes[3]))
 
 # Create custom materials and sections for use, or just let the defaults be.
 # TestMaterial and Section  class used here to avoid calculation of section and material dims etc.,

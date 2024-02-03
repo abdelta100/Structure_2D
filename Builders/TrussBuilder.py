@@ -1,5 +1,5 @@
 from Core.CrossSection import TestRectangularCrossSection
-from Core.Element import Element, TrussElement
+from Core.Element import GeneralFrameElement2D, TrussElement
 from Core.Load import *
 from Core.Material import TestMaterial
 from Core.Node import Node
@@ -17,7 +17,7 @@ nodes.append(Node(30, 10, 3))
 nodes.append(Node(40, 0, 4))
 
 # Create a Node List and assign node instances to it
-elements: list[Element] = []
+elements: list[GeneralFrameElement2D] = []
 # Element takes its i-node and j-node in init call, working on assigning material and section from init call too, \
 # but uses default values for material and section at init
 elements.append(TrussElement(nodes[0], nodes[1]))

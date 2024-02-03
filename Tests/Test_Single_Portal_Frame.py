@@ -1,7 +1,7 @@
 import unittest
 import pytest
 from Core.StructureGlobal import StructureGlobal
-from Core.Element import Element
+from Core.Element import GeneralFrameElement2D
 from Core.Node import Node
 from Core.Support import Support
 from Core.Load import *
@@ -24,10 +24,10 @@ def single_bay_portal_frame():
     nodes.append(Node(20, 0, 3))
 
 
-    elements: list[Element] = []
-    elements.append(Element(nodes[0], nodes[1]))
-    elements.append(Element(nodes[1], nodes[2]))
-    elements.append(Element(nodes[2], nodes[3]))
+    elements: list[GeneralFrameElement2D] = []
+    elements.append(GeneralFrameElement2D(nodes[0], nodes[1]))
+    elements.append(GeneralFrameElement2D(nodes[1], nodes[2]))
+    elements.append(GeneralFrameElement2D(nodes[2], nodes[3]))
 
     supports: list[Support] = []
     supports.append(Support.init_from_node(nodes[0], 0, support_type='fixed'))

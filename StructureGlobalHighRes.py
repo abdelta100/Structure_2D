@@ -1,4 +1,4 @@
-from Core.Element import Element
+from Core.Element import GeneralFrameElement2D
 from Core.Load import *
 from Core.Node import Node
 from Core.StructureGlobal import StructureGlobal
@@ -11,7 +11,7 @@ class StructureGlobalHighRes(StructureGlobal):
         self.res = 1  # unit resolution
 
     def subdivAllElements(self):
-        subElems: list[Element] = []
+        subElems: list[GeneralFrameElement2D] = []
         for element in self.elements:
             tempElems, tempNodes = self.subdivSingleElem(element)
             self.addSubNodes(tempNodes)
@@ -29,7 +29,7 @@ class StructureGlobalHighRes(StructureGlobal):
         # TODO load application not split yet
         baseNodeNum = self.nodes[-1].idnum
         angle = element.getAngle()
-        subElems: list[Element] = []
+        subElems: list[GeneralFrameElement2D] = []
         subNodes: list[Node] = []
         subLength = element.length / numElems
         first_node = element.i_Node

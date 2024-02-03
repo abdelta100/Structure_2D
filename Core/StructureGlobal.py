@@ -1,7 +1,7 @@
 import numpy as np
 
 from AuxillaryFunctions import matrixStabilityCheck
-from .Element import Element
+from .Element import GeneralFrameElement2D
 from ElementHelperFunctions import ElementHelper
 from .Load import StaticLoad
 from .Node import Node
@@ -15,7 +15,7 @@ class StructureGlobal:
         A structure class that holds the entire structure, and contains methods for analysis etc.
         """
         self.nodes: list[Node] = []
-        self.elements: list[Element] = []
+        self.elements: list[GeneralFrameElement2D] = []
         self.supports: list[Support] = []
         self.loads: list[StaticLoad] = []
         self.dof = DOF
@@ -226,7 +226,7 @@ class StructureGlobal:
                      (self.elements[0].i_Node.y + self.elements[0].j_Node.y) / 2, 1))
             self.nodes[2].idnum=2
             # TODO add property copying logic that does not copy member end nodes i guess
-            subelems: list[Element] = []
+            subelems: list[GeneralFrameElement2D] = []
             subelems.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
             subelems.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
             subelems[0].i_Node = self.nodes[0]
