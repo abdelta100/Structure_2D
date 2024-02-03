@@ -46,7 +46,7 @@ def single_bay_portal_frame():
 
 def test_single_bay_portal_frame_Pointload_beam_center(single_bay_portal_frame):
     single_bay_portal_frame.reset(reset_type="hard")
-    load=PointLoadMember(10, 10, -90)
+    load = PointLoadMember(10, 10, -90)
     single_bay_portal_frame.elements[1].addLoad(load)
     single_bay_portal_frame.runAnalysis()
     support1 = single_bay_portal_frame.supports[0].reaction
