@@ -267,32 +267,45 @@ class Element:
         pass
 
     def endReleaseHandler3(self, localStiffness):
+        # create a release vector, ie convert to numpy array
         kr = self.endReleases.tolist()
         release: np.ndarray = np.array(kr)
         base_transformation = np.eye(N=release.shape[0])
+        # create an array that stores repesantative values at indices of dependant dofs, could use better implementation
         slave_dof_copy_index = np.zeros(shape=(release.shape[0], release.shape[0]))
+        # create a list that stores indices of dependant dofs, maybe deprecare
         z_index = []
         for i in range(len(kr)):
             if kr[i] == 0:
                 z_index.append(i)
 
+        # copy representative values of dependant dofs at indices
         for i in z_index:
             for j in z_index:
                 slave_dof_copy_index[i,j] = 1
 
+        # create an array to store coefficiens of dependant dofs at their specific indices, check if element wise mult is working
         slave_dof = localStiffness * slave_dof_copy_index
+        # rpobably don't need master_dof, stores independant dof coefficents
         master_dof = copy.deepcopy(localStiffness)
         master_dof = -(master_dof+np.multiply(slave_dof_copy_index,-localStiffness))
-        slave_rref_gen = np.linalg.pinv(slave_dof)
-        master_dof = np.matmul(master_dof, slave_rref_gen)
-        slave_to_master = np.eye(N=release.shape[0])
+        # add 1s to slave_dof, at independent dof indices, results in slave_rref_gen
+        add_to_slave_rref_gen=np.eye(N=release.shape[0])-slave_dof_copy_index
+        slave_rref_gen = np.linalg.pinv(slave_dof) + add_to_slave_rref_gen
+        # dont think i need the following
+        # master_dof = np.matmul(master_dof, slave_rref_gen)
+        # slave_to_master = np.eye(N=release.shape[0])
 
-        for i in z_index:
-            # figure out concise notation for this
-            slave_to_master[i,:] = master_dof[i, :]
-
-        final_master_dof = np.matmul(master_dof, slave_to_master)
-        a=3
+        mod_stiffness=np.matmul(slave_rref_gen, localStiffness)
+        final_mat=(1-np.matmul(release, mod_stiffness))*mod_stiffness
+        # for i in z_index:
+        #     # figure out concise notation for this
+        #     slave_to_master[i,:] = master_dof[i, :]
+        #
+        # final_master_dof = np.matmul(master_dof, slave_to_master)
+        a = 3
+        # isolate just the transformation matrix from here plz
+        return final_mat
 
 
 
