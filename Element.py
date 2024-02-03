@@ -131,12 +131,12 @@ class Element:
             jNodeLoad -= jNodeLoadTemp
 
         endReleaseHandledFEM = np.matmul(self.FEM_Identity, np.array(iNodeLoad.tolist()+jNodeLoad.tolist()))
-        iNodeLoad.Fx = endReleaseHandledFEM[0]
-        iNodeLoad.Fy = endReleaseHandledFEM[1]
-        iNodeLoad.Mxy = endReleaseHandledFEM[2]
-        jNodeLoad.Fx = endReleaseHandledFEM[3]
-        jNodeLoad.Fy = endReleaseHandledFEM[4]
-        jNodeLoad.Mxy = endReleaseHandledFEM[5]
+        iNodeLoad.fx = endReleaseHandledFEM[0]
+        iNodeLoad.fy = endReleaseHandledFEM[1]
+        iNodeLoad.mxy = endReleaseHandledFEM[2]
+        jNodeLoad.fx = endReleaseHandledFEM[3]
+        jNodeLoad.fy = endReleaseHandledFEM[4]
+        jNodeLoad.mxy = endReleaseHandledFEM[5]
 
         self.node1FEM = iNodeLoad
         self.node2FEM = jNodeLoad
@@ -350,7 +350,7 @@ class TrussElement(Element):
     def __init__(self, i: Node, j: Node):
         super().__init__(i, j)
         self.endReleases: MemberEndRelease2D = PinnedEndMember()
-        self.recalculateMatrices()
+        # self.recalculateMatrices()
 
     # def elementStiffnessMatrix(self):
     #     # Partial Term 1: EA/L
