@@ -1,15 +1,12 @@
 from math import cos, sin
 
-import matplotlib.pyplot as plt
-
-from CrossSection import TestRectangularCrossSection
-from Element import Element, TrussElement
-from Load import *
-from Material import TestMaterial, DefaultMaterial
-from Node import Node
-from StructureGlobal import StructureGlobal
-from StructureGlobalHighRes import StructureGlobalHighRes
-from Support import Support, FixedSupport
+from Core.CrossSection import TestRectangularCrossSection
+from Core.Element import Element
+from Core.Load import *
+from Core.Material import TestMaterial
+from Core.Node import Node
+from Core.StructureGlobal import StructureGlobal
+from Core.Support import Support
 from StructureGlobalHelperFunctions import StructureGlobalHelper
 
 nodes: list[Node] = []

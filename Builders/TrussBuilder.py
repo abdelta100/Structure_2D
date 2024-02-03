@@ -1,11 +1,11 @@
-from CrossSection import TestRectangularCrossSection
-from Element import Element, TrussElement
-from Load import *
-from Material import TestMaterial
-from Node import Node
-from StructureGlobal import StructureGlobal
+from Core.CrossSection import TestRectangularCrossSection
+from Core.Element import Element, TrussElement
+from Core.Load import *
+from Core.Material import TestMaterial
+from Core.Node import Node
+from Core.StructureGlobal import StructureGlobal
 from StructureGlobalHelperFunctions import StructureGlobalHelper
-from Support import Support
+from Core.Support import Support
 
 # Create a Node List and assign node instances to it
 nodes: list[Node] = []

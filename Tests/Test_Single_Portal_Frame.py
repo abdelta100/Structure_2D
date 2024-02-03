@@ -1,13 +1,13 @@
 import unittest
 import pytest
-from StructureGlobal import StructureGlobal
-from Element import Element
-from Node import Node
-from Support import Support
-from Load import *
+from Core.StructureGlobal import StructureGlobal
+from Core.Element import Element
+from Core.Node import Node
+from Core.Support import Support
+from Core.Load import *
 import numpy as np
-from Material import DefaultMaterial
-from CrossSection import DefaultRectangularCrossSection
+from Core.Material import DefaultMaterial, TestMaterial
+from Core.CrossSection import DefaultRectangularCrossSection, TestRectangularCrossSection
 # TODO get familiar with pytest and write tests to check if code has broken when imporving later
 
 def default_material_crossSection():
