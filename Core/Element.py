@@ -321,6 +321,9 @@ class GeneralFrameElement2D:
     def endReleaseHandlerForFEM(self):
         pass
 
+    def setEndRelease(self, endRelease: MemberEndRelease2D):
+        self.endReleases = endRelease
+
     @property
     def i_Node(self):
         return self._i_Node
