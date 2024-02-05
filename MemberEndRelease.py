@@ -29,6 +29,28 @@ class MemberEndRelease2D:
     def tolist(self):
         return [self.fx1, self.fy1, self.mxy1, self.fx2, self.fy2, self.mxy2]
 
+    def iNodeRelease(self):
+        return [self.fx1, self.fy1, self.mxy1]
+
+    def jNodeRelease(self):
+        return [self.fx2, self.fy2, self.mxy2]
+
+    @staticmethod
+    def init_from_array(releaseList: list[int]):
+        for i in releaseList:
+            if i < 0 or i > 1 or type(i) != int:
+                ValueError("Entries of release list should be either 0 or 1")
+
+        release = MemberEndRelease2D(
+            Fxi=releaseList[0],
+            Fyi=releaseList[1],
+            Mxyi=releaseList[2],
+            Fxj=releaseList[3],
+            Fyj=releaseList[4],
+            Mxyj=releaseList[5])
+
+        return release
+
     @property
     def fx1(self):
         return self._Fxi
@@ -85,6 +107,7 @@ class FixedEndMember(MemberEndRelease2D):
         :rtype: FixedEndMember
         """
         super().__init__()
+
 
 class PinnedEndMember(MemberEndRelease2D):
     def __init__(self):
