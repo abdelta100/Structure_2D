@@ -3,6 +3,7 @@ from Core.Load import *
 from Core.Node import Node
 from Core.StructureGlobal import StructureGlobal
 from ElementHelperFunctions import ElementHelper
+from MemberEndRelease import FixedEndMember, MemberEndRelease2D
 
 
 class StructureGlobalHighRes(StructureGlobal):
@@ -41,6 +42,11 @@ class StructureGlobalHighRes(StructureGlobal):
             new_elem = ElementHelper.copyElementPropertiesSansNodes(element)
             new_elem.i_Node = first_node
             new_elem.j_Node = second_node
+            if i == 0:
+                # TODO fix this, put this clause here even though this is clunky, because putting it outside the loop resulted in problems
+                new_elem.setEndRelease(MemberEndRelease2D.init_from_array(element.endReleases.iNodeRelease() + FixedEndMember().jNodeRelease()))
+            else:
+                new_elem.setEndRelease(FixedEndMember())
             subElems.append(new_elem)
             subNodes.append(second_node)
             first_node = second_node
@@ -48,6 +54,8 @@ class StructureGlobalHighRes(StructureGlobal):
         lastElem = ElementHelper.copyElementPropertiesSansNodes(element)
         lastElem.i_Node = first_node
         lastElem.j_Node = element.j_Node
+        lastElem.setEndRelease(
+            MemberEndRelease2D.init_from_array(FixedEndMember().iNodeRelease() + element.endReleases.jNodeRelease()))
         subElems.append(lastElem)
         return subElems, subNodes
 

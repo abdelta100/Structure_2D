@@ -6,6 +6,7 @@ from Core.Node import Node
 from Core.StructureGlobal import StructureGlobal
 from StructureGlobalHelperFunctions import StructureGlobalHelper
 from Core.Support import Support
+from StructureGlobalHighRes import StructureGlobalHighRes
 
 # Create a Node List and assign node instances to it
 nodes: list[Node] = []
@@ -50,7 +51,12 @@ supports.append(Support.init_from_node(nodes[0], 0, support_type='pin'))
 supports.append(Support.init_from_node(nodes[4], 1, support_type='pin'))
 
 # Initilalize Structure Object and assign nodes, elements and supports to it
-structure: StructureGlobal = StructureGlobal()
+# structure: StructureGlobal = StructureGlobal()
+# structure.nodes = nodes
+# structure.elements = elements
+# structure.supports = supports
+
+structure: StructureGlobalHighRes = StructureGlobalHighRes()
 structure.nodes = nodes
 structure.elements = elements
 structure.supports = supports
@@ -58,7 +64,7 @@ structure.supports = supports
 # Create a Load List, not necessary for load application, you can addLoad directly to element via .addLoad() call
 loads: list[StaticLoad] = []
 # Each load class takes different input parameters, see documentation
-loads.append(PointLoad(20, angle=-90))
+loads.append(PointLoad(20000, angle=-90))
 loads.append(PointLoadMember(10, 10, angle=-90))
 
 # Assign Loads to either element or node via .addLoad call
@@ -67,6 +73,7 @@ elements[4].addLoad(loads[1])
 # nodes[1].addLoad(loads[0])
 
 # Run analysis
+structure.subdivAllElements()
 structure.runAnalysis()
 
 # Print support reactions
@@ -74,3 +81,4 @@ print(structure.modelSummary())
 
 spr=StructureGlobalHelper
 spr.graphNodalDisplacementGraph(structure=structure)
+
