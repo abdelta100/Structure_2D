@@ -30,7 +30,24 @@ I think. Divided multiple VDLs and summed their fixed end reactions.
 22 Dec 2023:
 Add principal force and Principal disp classes to accommodate single nodal loads for transfer etc. include summation behaviour and compose of point load and moment classes idk?
 
-13 Jan 2023:
+13 Jan 2024:
 Figured out why results of code were wrong. Fundamentally an error in transforming element stiffness to global stiffness.
 Previously used Transformation * ElementStiffness * Transformation.T.
 Correct was Transformation.T * ElementStiffness * Transformation.
+
+3 Feb 2024:
+Added truss implementation. Wack procedure. Will elaborate later.
+Had to amend the stiffness matrix for each element based on end releases, and use the same modification step to amend
+the FEMs/FEAs applied at element ends.
+
+5 Feb 2024:
+Figured out a problem with truss implementation. If a moment is applied to a node solely connected to by truss elements,
+the node rotates and also rotates the elements. I think this is because the np solver cannot possibly solve for the
+following case:
+c=np.array([[1,2,3], [2,5,1],[0,0,0]])
+y=np.array([5, 8, 1])
+x=np.linalg.solve(c, y)
+There is a zero row, and non zero result, which intuitively should not yield a result, however a result is returned because of small
+terms that get introduced to floating point math instead of an actual zero.
+A solution could be to null any applied moment if it is detected that only truss elements connect to it,
+or add a support type that is fixed in rotation only at that node (from a book)?
