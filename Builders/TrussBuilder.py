@@ -51,29 +51,30 @@ supports.append(Support.init_from_node(nodes[0], 0, support_type='pin'))
 supports.append(Support.init_from_node(nodes[4], 1, support_type='pin'))
 
 # Initilalize Structure Object and assign nodes, elements and supports to it
-# structure: StructureGlobal = StructureGlobal()
-# structure.nodes = nodes
-# structure.elements = elements
-# structure.supports = supports
-
-structure: StructureGlobalHighRes = StructureGlobalHighRes()
+structure: StructureGlobal = StructureGlobal()
 structure.nodes = nodes
 structure.elements = elements
 structure.supports = supports
 
+# structure: StructureGlobalHighRes = StructureGlobalHighRes()
+# structure.nodes = nodes
+# structure.elements = elements
+# structure.supports = supports
+
 # Create a Load List, not necessary for load application, you can addLoad directly to element via .addLoad() call
 loads: list[StaticLoad] = []
 # Each load class takes different input parameters, see documentation
-loads.append(PointLoad(20000, angle=-90))
-loads.append(PointLoadMember(10, 10, angle=-90))
+loads.append(Moment(20))
+loads.append(PointLoadMember(10, 8, angle=-90))
+loads.append(UniformDistributedLoad(10000, 0, 20, -90))
 
 # Assign Loads to either element or node via .addLoad call
-elements[4].addLoad(loads[1])
+# elements[5].addLoad(loads[2])
 # elements[3].addLoad(loads[3])
 # nodes[1].addLoad(loads[0])
 
 # Run analysis
-structure.subdivAllElements()
+# structure.useSelfWeight()
 structure.runAnalysis()
 
 # Print support reactions
@@ -82,3 +83,4 @@ print(structure.modelSummary())
 spr=StructureGlobalHelper
 spr.graphNodalDisplacementGraph(structure=structure)
 
+# Problem when applying moment load to node

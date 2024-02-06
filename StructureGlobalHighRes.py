@@ -62,5 +62,7 @@ class StructureGlobalHighRes(StructureGlobal):
     def addSubNodes(self, subNodeList):
         for node in subNodeList:
             self.nodes.append(node)
-
-
+    
+    def _preprocessor(self):
+        self.subdivAllElements()
+        super()._preprocessor()

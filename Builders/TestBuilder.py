@@ -8,6 +8,7 @@ from Core.Node import Node
 from Core.StructureGlobal import StructureGlobal
 from Core.Support import Support
 from StructureGlobalHelperFunctions import StructureGlobalHelper
+from StructureGlobalHighRes import StructureGlobalHighRes
 
 nodes: list[Node] = []
 # TODO add a idnum verifier and corrector in structure global
@@ -67,7 +68,6 @@ structure: StructureGlobal = StructureGlobal()
 structure.nodes = nodes
 structure.elements = elements
 structure.supports = supports
-# structure.subdivAllElements()
 
 loads: list[StaticLoad] = []
 loads.append(Moment(50))
@@ -85,10 +85,11 @@ loads.append(PointLoadMember(29, 24, angle=-90))
 #TODO error when running following line check
 # nodes[1].addLoad(loads[0])
 elements[2].addLoad(loads[9])
-elements[5].addLoad(loads[10])
+# elements[5].addLoad(loads[10])
 # nodes[1].addLoad(loads[-1])
 
 # structure.subdivAllElements()
+# structure.useSelfWeight()
 structure.runAnalysis()
 print(structure.modelSummary())
 # x, y = elements[1].calcBendingMomentDiagram()
