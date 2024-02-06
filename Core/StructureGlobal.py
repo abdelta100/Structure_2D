@@ -19,6 +19,7 @@ class StructureGlobal:
         self.supports: list[Support] = []
         self.loads: list[StaticLoad] = []
         self.dof = DOF
+        self._useSelfWeight: bool = False
         self.stiffnessMatrix: np.ndarray = np.zeros(shape=(len(self.nodes) * self.dof, len(self.nodes) * self.dof))
 
     def createGlobalStiffnessMatrix(self):
@@ -163,7 +164,10 @@ class StructureGlobal:
 
     def _preprocessor(self):
         for element in self.elements:
-            element.preprocessor()
+            element.preprocessor(self._useSelfWeight)
+
+    def useSelfWeight(self):
+        self._useSelfWeight = True
 
     def findAllNodalForcesPostAnalysis(self):
         nodeAdjacencyMatrix, elemNodeIntersection = self.createElementNodeIntersectionMatrix()

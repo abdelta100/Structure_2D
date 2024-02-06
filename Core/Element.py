@@ -49,8 +49,11 @@ class GeneralFrameElement2D:
             # self.recalculateMatrices()
         # TODO add something about self weight
 
-    def preprocessor(self):
+    def preprocessor(self, useSelfWeight: bool = False):
         self.recalculateMatrices()
+        if useSelfWeight:
+            # TODO check for non prismatic sections idk
+            self.addLoad(UniformDistributedLoad(self.A, 0, self.length, angle=-90))
 
     def elementStiffnessMatrix(self):
         # Partial Term 1: EA/L
