@@ -91,6 +91,7 @@ elements[2].addLoad(loads[9])
 # structure.subdivAllElements()
 # structure.useSelfWeight()
 structure.runAnalysis()
+elements[1].elementEndForces()
 print(structure.modelSummary())
 # x, y = elements[1].calcBendingMomentDiagram()
 spr=StructureGlobalHelper

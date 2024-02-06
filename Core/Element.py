@@ -110,6 +110,15 @@ class GeneralFrameElement2D:
             load.location = load.location = load.beamLength
         # TODO needs work to define order of precedence. Add load first or select member first?
 
+    def elementEndForces(self):
+        iNodeDispGlobal = self.i_Node.disp
+        jNodeDispGlobal = self.j_Node.disp
+        transformedDisp = np.matmul(self.transformationMatrix.T, np.array(iNodeDispGlobal.tolist()+jNodeDispGlobal.tolist()))
+        endForces = np.matmul(self.localStiffnessMatrix, transformedDisp) + np.array(self.node1FEM.tolist()+self.node2FEM.tolist())
+        iNodeForce = PrincipleForce2D(endForces[0], endForces[1], endForces[2])
+        jNodeForce = PrincipleForce2D(endForces[3], endForces[4], endForces[5])
+        return iNodeForce, jNodeForce
+
     def addLoad(self, load: StaticLoad):
         #TODO add local and projection option control here?
         if isinstance(load, MemberLoad):
@@ -176,9 +185,6 @@ class GeneralFrameElement2D:
         self.I = self.crossSection.calcMomentofInertia()
         self.localStiffnessMatrix: np.ndarray = self.elementStiffnessMatrix()
         self.globalStiffnessMatrix: np.ndarray = self.local2globalStiffness()
-
-    def elementEndForces(self):
-        pass
 
     def calculateInternalForcesAndDisplacements(self):
         self.calcShearForceDiagram()
