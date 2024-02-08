@@ -1,17 +1,16 @@
-import copy
 import math
 
 import numpy as np
+
 # from scipy.spatial.distance import euclidean
 from AuxillaryFunctions import distance as euclidean
-
+from MemberEndRelease import FixedEndMember, MemberEndRelease2D, PinnedEndMember
+from PrincipleForce import PrincipleForce2D
 from .CrossSection import DefaultRectangularCrossSection, CrossSection
-from .Load import StaticLoad, UniformDistributedLoad, VaryingDistributedLoad, PointLoadMember, MomentMember
+from .Load import StaticLoad, UniformDistributedLoad, PointLoadMember, MomentMember
 from .LoadInterfaces import MemberLoad
 from .Material import DefaultMaterial, Material
 from .Node import Node
-from PrincipleForce import PrincipleForce2D
-from MemberEndRelease import FixedEndMember, MemberEndRelease2D, PinnedEndMember
 
 
 # TODO Incorporate a 2D general frame element class here by renaming element class, and set element class  to inherit from it
@@ -36,7 +35,7 @@ class GeneralFrameElement2D:
         # TODO adds x or axial comp in nodeFEM
         self.node1FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
         self.node2FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
-        self.FEM_Identity=np.eye(N=2*len(self.node1FEM))
+        self.FEM_Identity = np.eye(N=2 * len(self.node1FEM))
         self.localStiffnessMatrix: np.ndarray = np.zeros(shape=(6, 6))
         self.transformationMatrix: np.ndarray = np.zeros(shape=(6, 6))
         self.globalStiffnessMatrix: np.ndarray = np.zeros(shape=(6, 6))
@@ -45,15 +44,15 @@ class GeneralFrameElement2D:
         self.length: float = max(euclidean(self._i_Node.pos, self._j_Node.pos), 0.001)
         # except:
         #     pass
-            # self.length=0.001
-            # self.recalculateMatrices()
+        # self.length=0.001
+        # self.recalculateMatrices()
         # TODO add something about self weight
 
     def preprocessor(self, useSelfWeight: bool = False):
         self.recalculateMatrices()
         if useSelfWeight:
             # TODO check for non prismatic sections idk
-            self.addLoad(UniformDistributedLoad(self.A, 0, self.length, angle=-90))
+            self.addLoad(UniformDistributedLoad(self.A * self.material.density, 0, self.length, angle=-90))
 
     def elementStiffnessMatrix(self):
         # Partial Term 1: EA/L
@@ -68,11 +67,11 @@ class GeneralFrameElement2D:
 
         stiffness_matrix = np.array(
             [[pt1, 0, 0, -pt1, 0, 0],
-                    [0, pt2, pt3, 0, -pt2, pt3],
-                    [0, pt3, pt4, 0, -pt3, pt4 / 2],
-                    [-pt1, 0, 0, pt1, 0, 0],
-                    [0, -pt2, -pt3, 0, pt2, -pt3],
-                    [0, pt3, pt4 / 2, 0, -pt3, pt4]],
+             [0, pt2, pt3, 0, -pt2, pt3],
+             [0, pt3, pt4, 0, -pt3, pt4 / 2],
+             [-pt1, 0, 0, pt1, 0, 0],
+             [0, -pt2, -pt3, 0, pt2, -pt3],
+             [0, pt3, pt4 / 2, 0, -pt3, pt4]],
             dtype=np.float64)
 
         stiffness_matrix, FEM_identity = self.endReleaseHandler(stiffness_matrix)
@@ -95,11 +94,11 @@ class GeneralFrameElement2D:
         # recheck the bottom
         transformation_matrix = np.array(
             [[c, s, 0, 0, 0, 0],
-                    [-s, c, 0, 0, 0, 0],
-                    [0, 0, 1, 0, 0, 0],
-                    [0, 0, 0, c, s, 0],
-                    [0, 0, 0, -s, c, 0],
-                    [0, 0, 0, 0, 0, 1]], dtype=np.float64)
+             [-s, c, 0, 0, 0, 0],
+             [0, 0, 1, 0, 0, 0],
+             [0, 0, 0, c, s, 0],
+             [0, 0, 0, -s, c, 0],
+             [0, 0, 0, 0, 0, 1]], dtype=np.float64)
 
         return transformation_matrix
 
@@ -113,14 +112,21 @@ class GeneralFrameElement2D:
     def elementEndForces(self):
         iNodeDispGlobal = self.i_Node.disp
         jNodeDispGlobal = self.j_Node.disp
-        transformedDisp = np.matmul(self.transformationMatrix.T, np.array(iNodeDispGlobal.tolist()+jNodeDispGlobal.tolist()))
-        endForces = np.matmul(self.localStiffnessMatrix, transformedDisp) + np.array(self.node1FEM.tolist()+self.node2FEM.tolist())
+        transformedDisp = np.matmul(self.transformationMatrix.T,
+                                    np.array(iNodeDispGlobal.tolist() + jNodeDispGlobal.tolist()))
+        # minus added before np.array(FEM) instead of plus in line below, because my node1FEM, actually contains
+        # Fixed End Actions instead of Fixed End Reactions.
+        # TODO rename node1FEM to something more descriptive.
+        endForces = np.matmul(self.localStiffnessMatrix, transformedDisp) - np.array(
+            self.node1FEM.tolist() + self.node2FEM.tolist())
         iNodeForce = PrincipleForce2D(endForces[0], endForces[1], endForces[2])
         jNodeForce = PrincipleForce2D(endForces[3], endForces[4], endForces[5])
+        print(iNodeForce)
+        print(jNodeForce)
         return iNodeForce, jNodeForce
 
     def addLoad(self, load: StaticLoad):
-        #TODO add local and projection option control here?
+        # TODO add local and projection option control here?
         if isinstance(load, MemberLoad):
             load.beamLength = self.length
             load.cleanInputs()
@@ -142,7 +148,7 @@ class GeneralFrameElement2D:
             iNodeLoad -= iNodeLoadTemp
             jNodeLoad -= jNodeLoadTemp
 
-        endReleaseHandledFEM = np.matmul(self.FEM_Identity, np.array(iNodeLoad.tolist()+jNodeLoad.tolist()))
+        endReleaseHandledFEM = np.matmul(self.FEM_Identity, np.array(iNodeLoad.tolist() + jNodeLoad.tolist()))
         iNodeLoad.fx = endReleaseHandledFEM[0]
         iNodeLoad.fy = endReleaseHandledFEM[1]
         iNodeLoad.mxy = endReleaseHandledFEM[2]
@@ -257,8 +263,8 @@ class GeneralFrameElement2D:
         length: float = euclidean(self._i_Node.pos, self._j_Node.pos)
         if length != self.length:
             self.recalculateMatrices()
-        self.length=length
-        if length==0: self.length=0.001
+        self.length = length
+        if length == 0: self.length = 0.001
         return self.length
 
     def reset(self, reset_type="soft"):
@@ -268,19 +274,20 @@ class GeneralFrameElement2D:
             self.clearLoads()
 
     def endReleaseHandler2(self, localStiffness):
-        kr=self.endReleases.tolist()
+        kr = self.endReleases.tolist()
         release: np.ndarray = np.array(kr)
         base_transformation = np.eye(N=release.shape[0])
         for i in range(release.shape[0]):
-            if release[i] == 0: #keep it not 1 in case further spring rotation needs to be added
+            if release[i] == 0:  # keep it not 1 in case further spring rotation needs to be added
                 # localStiffness[i,]=1
                 base_transformation[i, :] = -localStiffness[i, :]
-                base_transformation[i, :] = base_transformation[i, :]/localStiffness[i,i]
+                base_transformation[i, :] = base_transformation[i, :] / localStiffness[i, i]
                 base_transformation[i, i] = 0
                 for j in range(release.shape[0]):
-                    if base_transformation[i, j] !=0 and base_transformation[j, j] == 0:
-                        base_transformation[i, :] = base_transformation[i, :] + base_transformation[i, :] * -base_transformation[i,j]
-                        base_transformation[i, :] = base_transformation[i, :] / (1-base_transformation[j, j])
+                    if base_transformation[i, j] != 0 and base_transformation[j, j] == 0:
+                        base_transformation[i, :] = base_transformation[i, :] + base_transformation[i, :] * - \
+                        base_transformation[i, j]
+                        base_transformation[i, :] = base_transformation[i, :] / (1 - base_transformation[j, j])
                         base_transformation[j, j] = 0
 
                 pass
@@ -291,16 +298,17 @@ class GeneralFrameElement2D:
         kr = self.endReleases.tolist()
         fixity: np.ndarray = np.array(kr)
         fixity_diag = np.diag(fixity)
-        release_diag = np.diag(1-fixity)
+        release_diag = np.diag(1 - fixity)
         base_transformation = np.eye(N=fixity.shape[0])
         # create an array that stores repesantative values at indices of dependant dofs, could use better implementation
-        slave_dof_copy_index = np.matmul(release_diag,np.matmul(np.ones(shape=(fixity.shape[0], fixity.shape[0])), release_diag))
+        slave_dof_copy_index = np.matmul(release_diag,
+                                         np.matmul(np.ones(shape=(fixity.shape[0], fixity.shape[0])), release_diag))
 
         # create an array to store coefficiens of dependant dofs at their specific indices, check if element wise mult is working
         slave_dof = localStiffness * -slave_dof_copy_index
 
         # add 1s to slave_dof, at independent dof indices, results in slave_rref_gen
-        add_to_slave_rref_gen=np.matmul(np.eye(N=fixity.shape[0]), fixity_diag)
+        add_to_slave_rref_gen = np.matmul(np.eye(N=fixity.shape[0]), fixity_diag)
         slave_rref_gen = np.linalg.pinv(slave_dof) + add_to_slave_rref_gen
 
         # final leg. substituting values of all slave_dofs including dependancy on independant dof into the modified
@@ -308,14 +316,14 @@ class GeneralFrameElement2D:
         mod_stiffness = np.matmul(slave_rref_gen, localStiffness)
         row_weight = np.matmul(mod_stiffness, release_diag)
         slave_dof_terms_eq = np.matmul(row_weight, mod_stiffness)
-        final_mat_stiffness = mod_stiffness+slave_dof_terms_eq
+        final_mat_stiffness = mod_stiffness + slave_dof_terms_eq
         # in the avove few lines there maybe an issue while concising due to me thinking we need to use 1-row weight,
         # but instead it may require I-row weight, also some buggery with matmul or elementwise mult
 
         fem_identity = np.eye(fixity.shape[0])
         mod_fem = np.matmul(slave_rref_gen, fem_identity)
         slave_dof_terms_eq_fem = np.matmul(row_weight, mod_fem)
-        final_fem_identity = mod_fem+slave_dof_terms_eq_fem
+        final_fem_identity = mod_fem + slave_dof_terms_eq_fem
         # print(final_mat)
         # Probelm above, becuase mod_stiffness is calc some other way idk????
         # for i in z_index:
@@ -364,6 +372,7 @@ class FrameElement(GeneralFrameElement2D):
         """
         super().__init__(i, j)
 
+
 class TrussElement(GeneralFrameElement2D):
     def __init__(self, i: Node, j: Node):
         """
@@ -375,4 +384,3 @@ class TrussElement(GeneralFrameElement2D):
         super().__init__(i, j)
         self.endReleases: MemberEndRelease2D = PinnedEndMember()
         # self.recalculateMatrices()
-
