@@ -38,7 +38,7 @@ class MemberEndRelease2D:
     @staticmethod
     def init_from_array(releaseList: list[int]):
         for i in releaseList:
-            if i < 0 or i > 1 or type(i) != int:
+            if i < 0 or i > 1 or type(i) is not int:
                 ValueError("Entries of release list should be either 0 or 1")
 
         release = MemberEndRelease2D(
