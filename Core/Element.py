@@ -273,26 +273,6 @@ class GeneralFrameElement2D:
         if reset_type == "hard":
             self.clearLoads()
 
-    def endReleaseHandler2(self, localStiffness):
-        kr = self.endReleases.tolist()
-        release: np.ndarray = np.array(kr)
-        base_transformation = np.eye(N=release.shape[0])
-        for i in range(release.shape[0]):
-            if release[i] == 0:  # keep it not 1 in case further spring rotation needs to be added
-                # localStiffness[i,]=1
-                base_transformation[i, :] = -localStiffness[i, :]
-                base_transformation[i, :] = base_transformation[i, :] / localStiffness[i, i]
-                base_transformation[i, i] = 0
-                for j in range(release.shape[0]):
-                    if base_transformation[i, j] != 0 and base_transformation[j, j] == 0:
-                        base_transformation[i, :] = base_transformation[i, :] + base_transformation[i, :] * - \
-                        base_transformation[i, j]
-                        base_transformation[i, :] = base_transformation[i, :] / (1 - base_transformation[j, j])
-                        base_transformation[j, j] = 0
-
-                pass
-        pass
-
     def endReleaseHandler(self, localStiffness):
         # create a release vector, ie convert to numpy array
         kr = self.endReleases.tolist()
@@ -301,8 +281,8 @@ class GeneralFrameElement2D:
         release_diag = np.diag(1 - fixity)
         base_transformation = np.eye(N=fixity.shape[0])
         # create an array that stores repesantative values at indices of dependant dofs, could use better implementation
-        slave_dof_copy_index = np.matmul(release_diag,
-                                         np.matmul(np.ones(shape=(fixity.shape[0], fixity.shape[0])), release_diag))
+        slave_dof_copy_index = np.matmul(
+            release_diag, np.matmul(np.ones(shape=(fixity.shape[0], fixity.shape[0])), release_diag))
 
         # create an array to store coefficiens of dependant dofs at their specific indices, check if element wise mult is working
         slave_dof = localStiffness * -slave_dof_copy_index
