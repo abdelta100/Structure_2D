@@ -89,18 +89,18 @@ structure.runAnalysis()
 elements[0].elementEndForces()
 elements[1].elementEndForces()
 elements[2].elementEndForces()
-print(structure.modelSummary())
+print(structure.resultSummary())
 # x, y = elements[1].calcBendingMomentDiagram()
 spr=StructureGlobalHelper
 spr.graphNodalDisplacementGraph(structure=structure)
 
 
-# TODO there IS an error in transferring reactionary forces or whatever  at nodes post analysis
+# TODO SOLVED there IS an error in transferring reactionary forces or whatever  at nodes post analysis
 
 
-# TODO add a function that prints model summary, maybe use __repr__ or something for individual elements
+# TODO SOLVED add a function that prints model summary, maybe use __repr__ or something for individual elements
 # TODO n order analysis
 # TODO add section rotation capability and 1-axis 2-axis Moment of Inertia
 # TODO do something about dof in structure and dof avaialable in principleforce/displacement 2D classes
-# TODO add an interface for member vs point loads idk, problem in element.addLoad() if you accidentally add eg a PointLoad
+# TODO SOLVED add an interface for member vs point loads idk, problem in element.addLoad() if you accidentally add eg a PointLoad
 # instead of a pointloadmember

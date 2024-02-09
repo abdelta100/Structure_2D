@@ -45,7 +45,7 @@ class StructureGlobal:
         for support in self.supports:
             # edit Line when going 3D
             disp_vector[support.idnum * self.dof: (support.idnum + 1) * self.dof] = np.array(
-                [support.xActive, support.yActive, support.RxyActive])
+                support.supportRelease.tolist())
         perm_order = np.argsort(disp_vector)
         permutation_matrix = np.zeros(shape=(disp_vector.shape[0], disp_vector.shape[0]))
         for i, j in zip(range(len(disp_vector)), perm_order):
@@ -242,7 +242,7 @@ class StructureGlobal:
             ElementHelper.subDivElementLoads(self.elements[0], subElems=subelems)
             self.elements = subelems
 
-    def modelSummary(self):
+    def resultSummary(self):
         # TODO improve this
         summary = ">>>>>>>>>>>>>MODEL SUMMARY<<<<<<<<<<<<<\n"
         summary += "REACTIONS\n"

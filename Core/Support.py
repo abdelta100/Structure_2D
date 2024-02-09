@@ -1,3 +1,5 @@
+from PrincipleDisplacement import PrincipleDisplacement2D
+from SupportRelease import SupportRelease2D
 from .Node import Node
 from PrincipleForce import Reaction
 
@@ -21,7 +23,9 @@ class Support(Node):
         super().__init__(x_, y_, in_)
         self.supportnum: int = support_num
         self.reaction: Reaction = Reaction()
+        self.supportRelease: SupportRelease2D = SupportRelease2D()
         self.setDOF(support_type)
+        self.dispLoad: PrincipleDisplacement2D = PrincipleDisplacement2D()
 
     # TODO should be deprecated
     @staticmethod
@@ -33,29 +37,30 @@ class Support(Node):
         super().reset(reset_type)
         self.reaction: Reaction = Reaction()
 
+    def addSupportDisplacement(self, dispLoad: PrincipleDisplacement2D):
+        self.dispLoad += dispLoad
+        # TODO add a principle stiffness vector?
+
     def setDOF(self, support_type: str = 'fixed'):
+        # TODO add a node release vector?
 
         # TODO AMEND FOR DOF > 3, in 3D Frame
 
         if support_type.lower() == 'fixed':
-            self.xActive = 1
-            self.yActive = 1
-            self.RxyActive = 1
+            self.supportRelease = SupportRelease2D(1,1,1)
 
         elif support_type.lower() == 'pin':
-            self.xActive = 1
-            self.yActive = 1
-            self.RxyActive = 0
+            self.supportRelease = SupportRelease2D(1,1,0)
+
         elif support_type.lower() == 'roller':
-            self.xActive = 0
-            self.yActive = 1
-            self.RxyActive = 0
+            self.supportRelease=SupportRelease2D(0,1,0)
+
         elif support_type.lower() == 'roller-y':
             self.setDOF(support_type='roller')
+
         elif support_type.lower() == 'roller-x':
-            self.xActive = 1
-            self.yActive = 0
-            self.RxyActive = 0
+            self.supportRelease = SupportRelease2D(1, 0, 0)
+
         elif support_type.lower() == 'other':
             # TODO find a way to set other DOFs, such as partial or tilted supports
             self.setDOF(support_type='fixed')

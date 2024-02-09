@@ -67,6 +67,6 @@ elements[3].addLoad(loads[3])
 structure.runAnalysis()
 
 # Print support reactions
-print(structure.modelSummary())
+print(structure.resultSummary())
 
 # Further outputs to be refined

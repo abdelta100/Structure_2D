@@ -78,7 +78,7 @@ loads.append(UniformDistributedLoad(10000, 0, 20, -90))
 structure.runAnalysis()
 
 # Print support reactions
-print(structure.modelSummary())
+print(structure.resultSummary())
 
 spr=StructureGlobalHelper
 spr.graphNodalDisplacementGraph(structure=structure)
