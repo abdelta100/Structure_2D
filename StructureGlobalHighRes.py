@@ -1,3 +1,5 @@
+from math import ceil
+
 from Core.Element import GeneralFrameElement2D
 from Core.Load import *
 from Core.Node import Node
@@ -9,7 +11,7 @@ from MemberEndRelease import FixedEndMember, MemberEndRelease2D
 class StructureGlobalHighRes(StructureGlobal):
     def __init__(self):
         super().__init__()
-        self.res = 1  # unit resolution
+        self.res = 2  # unit resolution
 
     def subdivAllElements(self):
         subElems: list[GeneralFrameElement2D] = []
@@ -21,7 +23,8 @@ class StructureGlobalHighRes(StructureGlobal):
         self.elements = subElems
 
     def subdivSingleElem(self, element):
-        numElems = round(element.length/self.res)+1
+        numElems = ceil(element.length/self.res)
+        # numElems = 37
         subElems, subNodes = self.subdivElem(element, numElems)
         ElementHelper.subDivElementLoads(element, subElems)
         return subElems, subNodes
@@ -65,4 +68,6 @@ class StructureGlobalHighRes(StructureGlobal):
     
     def _preprocessor(self):
         self.subdivAllElements()
+        print("Starting Preprocess")
         super()._preprocessor()
+        print("Finished Preprocess")
