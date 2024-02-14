@@ -23,7 +23,7 @@ class StructureGlobal:
         self.stiffnessMatrix: np.ndarray = np.zeros(shape=(len(self.nodes) * self.dof, len(self.nodes) * self.dof))
 
     def createGlobalStiffnessMatrix(self):
-        # TODO include element node releases or something
+        # TODO include element node releases or something, pure release implemented, partial release not
         # transformedElementMatrices=[element.transformedMatrix for element in self.elements]
         globalStiffnessMatrix = np.zeros(shape=(len(self.nodes) * self.dof, len(self.nodes) * self.dof), dtype=np.float64)
         for element in self.elements:
@@ -53,7 +53,7 @@ class StructureGlobal:
         return permutation_matrix, np.matmul(permutation_matrix, disp_vector)
 
     def _solver(self):
-        # TODO handle single beam edge case or similar
+        # FIXEDTODO handle single beam edge case or similar
         # TODO permutation matrix needs to be created by factoring in Supports not just nodes
         permutationMatrix, permutatedOrder = self.createPermutationMatrix()
         globalStiffness = self.createGlobalStiffnessMatrix()
@@ -166,8 +166,8 @@ class StructureGlobal:
         for element in self.elements:
             element.preprocessor(self._useSelfWeight)
 
-    def useSelfWeight(self):
-        self._useSelfWeight = True
+    def useSelfWeight(self, useSelfWeight: bool = True):
+        self._useSelfWeight = useSelfWeight
 
     def findAllNodalForcesPostAnalysis(self):
         nodeAdjacencyMatrix, elemNodeIntersection = self.createElementNodeIntersectionMatrix()
@@ -229,7 +229,7 @@ class StructureGlobal:
                 Node((self.elements[0].i_Node.x + self.elements[0].j_Node.x) / 2,
                      (self.elements[0].i_Node.y + self.elements[0].j_Node.y) / 2, 1))
             self.nodes[2].idnum=2
-            # TODO add property copying logic that does not copy member end nodes i guess
+            # FIXEDTODO add property copying logic that does not copy member end nodes i guess
             subelems: list[GeneralFrameElement2D] = []
             subelems.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
             subelems.append(ElementHelper.copyElementPropertiesSansNodes(self.elements[0]))
