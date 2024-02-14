@@ -1,6 +1,7 @@
 from .Load import StaticLoad, PointLoad, Moment
 from PrincipleDisplacement import NodalDisplacement
 from PrincipleForce import PrincipleForce2D
+from .LoadInterfaces import NodeLoad
 
 
 class Node:
@@ -24,7 +25,9 @@ class Node:
         # self.RyzActive = True
         # self.RxzActive = True
         # TODO implement moment and displacement releases, maybe in the element
-        self.nodalLoads: list[StaticLoad] = []
+        # Amendement: Nodes are supposed to be released in every dof, if it is not releases at some dof, then it should
+        # be equivalent to a support in that dof
+        self.nodalLoads: list[NodeLoad] = []
         self.FEM: PrincipleForce2D = PrincipleForce2D(0, 0, 0)
         self.netLoad: PrincipleForce2D = PrincipleForce2D(0, 0, 0) # Holds sum of fem and nodal loads
         self.disp: NodalDisplacement = NodalDisplacement(0, 0, 0)
@@ -75,7 +78,10 @@ class Node:
         return selfrep
 
     def addLoad(self, load: StaticLoad):
-        self.nodalLoads.append(load)
+        if isinstance(load, NodeLoad):
+            self.nodalLoads.append(load)
+        else:
+            print("Warning: Tried to apply a Non-Node load on element. Load ignored.")
 
     def combineTransferredLoads(self):
         combPointLoad = PointLoad(0, 0)
