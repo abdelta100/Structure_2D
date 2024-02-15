@@ -36,7 +36,8 @@ class PrincipleForce2D:
         return 3
 
     def transform(self, angle):
-        xComp = self.fy * math.sin(angle) + self.fx * math.cos(angle)
+        # TODO import trasformation from members itself
+        xComp = - self.fy * math.sin(angle) + self.fx * math.cos(angle)
         yComp = self.fy * math.cos(angle) + self.fx * math.sin(angle)
         return xComp, yComp
 

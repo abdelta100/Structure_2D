@@ -6,7 +6,7 @@ from Core.Load import *
 from Core.Material import TestMaterial
 from Core.Node import Node
 from Core.StructureGlobal import StructureGlobal
-from Core.Support import Support
+from Core.Support import Support, FixedSupport
 from StructureGlobalHelperFunctions import StructureGlobalHelper
 from StructureGlobalHighRes import StructureGlobalHighRes
 
@@ -25,8 +25,8 @@ nodes.append(Node(20, 0, 3))
 # nodes.append(Node(20, 100, 12))
 
 # mater=NewMaterial(name="Custom", density=2000, elastic_mod=200000000, poisson_ratio=.33,comp_strength=3000)
-mater = TestMaterial(E=4176000)
-section = TestRectangularCrossSection(A=(0.0625), I=(3.255E-4))
+mater = TestMaterial(E=2E11)
+section = TestRectangularCrossSection(A=(1), I=(0.0833))
 
 elements: list[GeneralFrameElement2D] = []
 #TODO add a kwarg or something for direct assigning material and section in instance call
@@ -53,9 +53,9 @@ for element in elements:
     element.setCrossSection(section)
 
 supports: list[Support] = []
-supports.append(Support.init_from_node(nodes[0], 0, support_type='Fixed'))
+supports.append(FixedSupport(nodes[0], 0))
 # supports.append(FixedSupport(nodes[0], 0))
-supports.append(Support.init_from_node(nodes[3], 1, support_type='fixed'))
+supports.append(FixedSupport(nodes[3], 1))
 
 
 structure: StructureGlobal = StructureGlobal()
@@ -73,22 +73,23 @@ loads.append(VaryingDistributedLoad(5*sin(degree2rad(20)), 10*sin(degree2rad(20)
 loads.append(VaryingDistributedLoad(0, 5, 4, 14, angle=-70))
 loads.append(UniformDistributedLoad(500, 4, 14, angle=-90))
 loads.append(TrapezoidalDistributedLoad([5, 13, 20], [0.13, 0.28, 0.28], angle=-90))
-loads.append(PointLoad(100000, 0))
+loads.append(PointLoad(10, 0))
 loads.append(VaryingDistributedLoad(10, 17, 3, 9, angle=-90))
 loads.append(PointLoadMember(29, 24, angle=-90))
+loads.append(VaryingDistributedLoad(5,10,10, 15, angle=-90))
 
 #TODO error when running following line check
 # nodes[1].addLoad(loads[0])
-elements[1].addLoad(loads[2])
+elements[0].addLoad(loads[-1])
 # elements[5].addLoad(loads[10])
-# nodes[1].addLoad(loads[-1])
+# nodes[1].addLoad(loads[8])
 
 # structure.subdivAllElements()
-structure.useSelfWeight()
+# structure.useSelfWeight()
 structure.runAnalysis()
 elements[0].elementEndForces()
-elements[1].elementEndForces()
-elements[2].elementEndForces()
+# elements[1].elementEndForces()
+# elements[2].elementEndForces()
 print(structure.resultSummary())
 # x, y = elements[1].calcBendingMomentDiagram()
 spr=StructureGlobalHelper
