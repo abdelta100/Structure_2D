@@ -5,7 +5,7 @@ from .Element import GeneralFrameElement2D
 from ElementHelperFunctions import ElementHelper
 from .Load import StaticLoad
 from .Node import Node
-from .Support import Support
+from .Support import Support, FixedSupport
 from .Constants import *
 
 
@@ -224,7 +224,7 @@ class StructureGlobal:
                 return node
 
     def _singleFixedBeamHandler(self):
-        if len(self.elements) == 1:
+        if len(self.elements) == 1 and (len(self.supports) == 2 and isinstance(self.supports[0], FixedSupport) and isinstance(self.supports[1], FixedSupport)):
             self.nodes.insert(1,
                 Node((self.elements[0].i_Node.x + self.elements[0].j_Node.x) / 2,
                      (self.elements[0].i_Node.y + self.elements[0].j_Node.y) / 2, 1))
