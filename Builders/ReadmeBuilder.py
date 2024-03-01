@@ -5,6 +5,7 @@ from Core.Load import *
 from Core.Material import *
 from Core.StructureGlobal import *
 from Core.Support import *
+from ElementHelperFunctions import ElementHelper as Helper
 
 nodes: list[Node] = []
 nodes.append(Node(x=0, y=0, idnum=0))
@@ -35,3 +36,4 @@ nodes[1].addLoad(PointLoad(magnitude=100, angle=0))
 structure.runAnalysis()
 
 print(structure.resultSummary())
+Helper.plotInternals(elements[1])

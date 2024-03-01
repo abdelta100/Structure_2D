@@ -153,9 +153,21 @@ Where are the results?
 print(structure.resultSummary())
 ```
 
+### Member Internal Forces
+If you are interested in finding out the shear force and bending moment etc, first you're going to need to import a helper class (for now):
+```
+from ElementHelperFunctions import ElementHelper as Helper
+```
+
+After this simply call the `plotInternals` function and provide the member as an argument:
+
+```
+Helper.plotInternals(elements[1])
+```
+
 This is it fellows.
 
 There is more stuff, but it hasn't been cleanly implemented for the end user.
 Member End Forces, Shear Diagrams, Moments Diagrams, etc.
-Will update this file when I do, if i don't forget.
-The structure formed in this readme file can be found in [ReadmeBuilder.py](/Builder/ReadmeBuilder.py)
+Will update this file when I do, if I don't forget.
+The structure formed in this readme file can be found in [ReadmeBuilder.py](/Builders/ReadmeBuilder.py)
