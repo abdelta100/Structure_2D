@@ -5,9 +5,19 @@ from Core.Node import Node
 from AuxillaryFunctions import rad2degree
 from Core.Load import PointLoadMember, MomentMember, UniformDistributedLoad, TrapezoidalDistributedLoad, \
     VaryingDistributedLoad
+import matplotlib.pyplot as plt
 
 
 class ElementHelper:
+    @staticmethod
+    def plotShearForceDiagram(element: GeneralFrameElement2D):
+        x, sfd = element.calcShearForceDiagram()
+        plt.plot(x, sfd, label= "Shear Force")
+        plt.axvline(x=0, c="black", label="length")
+        plt.axhline(y=0, c="black", label="Shear Magnitude")
+        plt.axvline(x=x[-1], c="black", label="length")
+        plt.xlim(0, x[-1])
+        plt.show()
     @staticmethod
     def copyElementPropertiesSansNodes(element: GeneralFrameElement2D, clearLoads=True) -> GeneralFrameElement2D:
         newElem = copy.deepcopy(element)

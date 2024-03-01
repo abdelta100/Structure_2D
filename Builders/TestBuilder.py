@@ -9,6 +9,7 @@ from Core.StructureGlobal import StructureGlobal
 from Core.Support import Support, FixedSupport
 from StructureGlobalHelperFunctions import StructureGlobalHelper
 from StructureGlobalHighRes import StructureGlobalHighRes
+from ElementHelperFunctions import ElementHelper as Helper
 
 nodes: list[Node] = []
 # TODO add a idnum verifier and corrector in structure global
@@ -80,7 +81,8 @@ loads.append(VaryingDistributedLoad(5,10,10, 15, angle=-90))
 
 #TODO error when running following line check
 # nodes[1].addLoad(loads[0])
-elements[0].addLoad(loads[-1])
+elements[1].addLoad(loads[3])
+elements[1].addLoad(loads[2])
 # elements[5].addLoad(loads[10])
 # nodes[1].addLoad(loads[8])
 
@@ -88,8 +90,9 @@ elements[0].addLoad(loads[-1])
 # structure.useSelfWeight()
 structure.runAnalysis()
 elements[0].elementEndForces()
-# elements[1].elementEndForces()
-# elements[2].elementEndForces()
+elements[1].elementEndForces()
+elements[2].elementEndForces()
+Helper.plotShearForceDiagram(elements[1])
 print(structure.resultSummary())
 # x, y = elements[1].calcBendingMomentDiagram()
 spr=StructureGlobalHelper

@@ -203,20 +203,25 @@ class GeneralFrameElement2D:
         num_elems = 1000
         resolution_distance = self.length / num_elems
         # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
-        i_node_Force_transformed = np.matmul(np.array(self.i_Node.FEM.tolist()), self.transformationMatrix[:3, :3])
-        j_node_Force = self.j_Node.FEM
-        subElems = [i * self.length / num_elems for i in range(num_elems)]
+        i_Node_FEM, j_Node_FEM = self.elementEndForces()
+        i_node_Force = i_Node_FEM.fy
+        j_node_Force = j_Node_FEM.fy
+        subElems = np.array([i * self.length / num_elems for i in range(num_elems)])
         # transform i_node force to local coords
-        sfd = [-i_node_Force_transformed[1]]
-        for point in subElems:
+        sfd = np.zeros(shape=subElems.shape)
+        for index, point in np.ndenumerate(subElems):
             for load in self.loads:
                 # TODO may cause issue with point loads, since resolution is implied and subElems may skip that particular point
-                if not isinstance(load, MomentMember):
-                    sfd[-1] += load.magnitudeAtPoint(point) * resolution_distance
+                if not (isinstance(load, MomentMember) or isinstance(load, PointLoadMember)):
+                    sfd[index[0]:] += load.magnitudeAtPoint(point) * resolution_distance
                     # TODO shear and bmd code is a mess fix it
-            sfd.append(sfd[-1])
-        sfd.pop(-1)
+        for load in self.loads:
+            if isinstance(load, PointLoadMember):
+                loadelempoint = int(load.location * num_elems/self.length)
+                # if loadelempoint == load.location:
+                sfd[loadelempoint:] += load.magnitudeAtPoint(load.location, axis="perpendicular")
 
+        sfd += i_node_Force
         return subElems, sfd
 
     def calcBendingMomentDiagram(self):
@@ -245,16 +250,24 @@ class GeneralFrameElement2D:
         num_elems = 1000
         # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
         # TODO, this displays opposite force to normally seen, because the force is in fact negative, work on this.
-        subElems = [i * self.length / num_elems for i in range(num_elems)]
+        subElems = np.array([i * self.length / num_elems for i in range(num_elems)])
         # transform i_node force to local coords
-        fd = [0]
-        for point in subElems:
+        fd = np.zeros(shape=subElems.shape)
+        for point, index in enumerate(subElems):
             for load in self.loads:
-                # TODO switching to minus here for clearer diagrams
-                fd[-1] -= load.magnitudeAtPoint(point, axis="perpendicular")
-            fd.append(0)
-        fd.pop(-1)
-        print(fd)
+                if not isinstance(load, PointLoadMember):
+                    # TODO switching to minus here for clearer diagrams
+                    point += load.magnitudeAtPoint(point, axis="perpendicular")
+        for load in self.loads:
+            if isinstance(load, PointLoadMember):
+                loadelempoint = int(load.location * self.length / num_elems)
+                # if loadelempoint == load.location:
+                fd[loadelempoint] += load.magnitudeAtPoint(load.location, axis="perpendicular")
+                # else:
+                #     # if loadelem point less than load.location
+                #     scaled_height = load.magnitudeAtPoint(load.location, axis="perpendicular")
+            # fd.append(0)
+        # fd.pop(-1)
 
         return subElems, fd
 
