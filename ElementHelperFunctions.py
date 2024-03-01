@@ -28,6 +28,24 @@ class ElementHelper:
         plt.axvline(x=x[-1], c="black", label="length")
         plt.xlim(0, x[-1])
         plt.show()
+
+    def plotRotationDiagram(element: GeneralFrameElement2D):
+        x, rot = element.calcBendingMomentDiagram()
+        plt.plot(x, rot, label= "Rotation")
+        plt.axvline(x=0, c="black", label="length")
+        plt.axhline(y=0, c="black", label="Rotation Angle")
+        plt.axvline(x=x[-1], c="black", label="length")
+        plt.xlim(0, x[-1])
+        plt.show()
+
+    def plotDeflectionDiagram(element: GeneralFrameElement2D):
+        x, deflection = element.calcDeflectionMajor()
+        plt.plot(x, deflection, label= "Deflection (Major)")
+        plt.axvline(x=0, c="black", label="length")
+        plt.axhline(y=0, c="black", label="Deflection")
+        plt.axvline(x=x[-1], c="black", label="length")
+        plt.xlim(0, x[-1])
+        plt.show()
     @staticmethod
     def copyElementPropertiesSansNodes(element: GeneralFrameElement2D, clearLoads=True) -> GeneralFrameElement2D:
         newElem = copy.deepcopy(element)

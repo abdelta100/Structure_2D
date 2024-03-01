@@ -257,6 +257,37 @@ class GeneralFrameElement2D:
 
         return subElems, bmd
 
+    def calcRotation(self):
+        num_elems = 1000
+        resolution_distance = self.length / num_elems
+        subElems, bmd = self.calcBendingMomentDiagram()
+        # TODO use end disp here
+        i_Node_disp, j_Node_disp = self.elementEndForces()
+        i_node_Rot = i_Node_disp.rxy
+        j_node_Rot = j_Node_disp.rxy
+
+        # rot = np.zeros(shape=subElems.shape)
+        rot = ctrapz(bmd, initial=0, dx=resolution_distance)
+
+        rot += i_node_Rot
+        return subElems, rot
+
+    def calcDeflectionMajor(self):
+        num_elems = 1000
+        resolution_distance = self.length / num_elems
+        subElems, rot = self.calcRotation()
+        # TODO use end disp here
+        i_Node_disp, j_Node_disp = self.elementEndForces()
+        i_node_Dy = i_Node_disp.dy
+        j_node_Dy = j_Node_disp.dy
+
+        # rot = np.zeros(shape=subElems.shape)
+        deflection = ctrapz(rot, initial=0, dx=resolution_distance)
+
+        deflection += i_node_Dy
+
+        return subElems, deflection
+
     def showForceDiagram(self):
         num_elems = 1000
         # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
