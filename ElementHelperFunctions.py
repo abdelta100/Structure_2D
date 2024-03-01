@@ -9,6 +9,18 @@ import matplotlib.pyplot as plt
 
 
 class ElementHelper:
+
+    @staticmethod
+    def plotAxialForceDiagram(element: GeneralFrameElement2D):
+        x, afd = element.calcAxialForceDiagram()
+        plt.plot(x, afd, label="Axial Force")
+        plt.axvline(x=0, c="black", label="length")
+        plt.axhline(y=0, c="black", label="Axial Force Magnitude")
+        plt.axvline(x=x[-1], c="black", label="length")
+        plt.xlim(0, x[-1])
+        plt.title("Axial Force Diagram")
+        plt.show()
+
     @staticmethod
     def plotShearForceDiagram(element: GeneralFrameElement2D):
         x, sfd = element.calcShearForceDiagram()
@@ -17,8 +29,10 @@ class ElementHelper:
         plt.axhline(y=0, c="black", label="Shear Magnitude")
         plt.axvline(x=x[-1], c="black", label="length")
         plt.xlim(0, x[-1])
+        plt.title("Shear Force Diagram")
         plt.show()
 
+    @staticmethod
     def plotBendingMomentDiagram(element: GeneralFrameElement2D):
         x, bmd = element.calcBendingMomentDiagram()
         # plotting negative bmd here for convention purposes
@@ -27,8 +41,10 @@ class ElementHelper:
         plt.axhline(y=0, c="black", label="Bending Moment Magnitude")
         plt.axvline(x=x[-1], c="black", label="length")
         plt.xlim(0, x[-1])
+        plt.title("Bending Moment Diagram")
         plt.show()
 
+    @staticmethod
     def plotRotationDiagram(element: GeneralFrameElement2D):
         x, rot = element.calcRotation()
         plt.plot(x, rot, label= "Rotation")
@@ -36,8 +52,10 @@ class ElementHelper:
         plt.axhline(y=0, c="black", label="Rotation Angle")
         plt.axvline(x=x[-1], c="black", label="length")
         plt.xlim(0, x[-1])
+        plt.title("Rotation/Slope Diagram")
         plt.show()
 
+    @staticmethod
     def plotDeflectionDiagram(element: GeneralFrameElement2D):
         x, deflection = element.calcDeflectionMajor()
         plt.plot(x, deflection, label= "Deflection (Major)")
@@ -45,39 +63,48 @@ class ElementHelper:
         plt.axhline(y=0, c="black", label="Deflection")
         plt.axvline(x=x[-1], c="black", label="length")
         plt.xlim(0, x[-1])
+        plt.title("Deflection Diagram (Major)")
         plt.show()
 
+    @staticmethod
     def plotInternals(element: GeneralFrameElement2D):
-        x, sfd, bmd, rot, deflection = element.calcInternals()
-        figure, axis = plt.subplots(4, 1, constrained_layout=True)
+        x, afd, sfd, bmd, rot, deflection = element.calcInternals()
+        figure, axis = plt.subplots(5, 1, constrained_layout=True)
 
-        axis[0].plot(x, sfd, label="Shear Force")
+        axis[0].plot(x, afd, label="Axial Force Force")
         axis[0].axvline(x=0, c="black", label="length")
-        axis[0].axhline(y=0, c="black", label="Shear Magnitude")
+        axis[0].axhline(y=0, c="black", label="Axial Force Magnitude")
         axis[0].axvline(x=x[-1], c="black", label="length")
         axis[0].set_xlim(0, x[-1])
-        axis[0].set_title("Shear Force Diagram")
+        axis[0].set_title("Axial Force Diagram")
 
-        axis[1].plot(x, -bmd, label= "Bending Moment")
+        axis[1].plot(x, sfd, label="Shear Force")
         axis[1].axvline(x=0, c="black", label="length")
         axis[1].axhline(y=0, c="black", label="Shear Magnitude")
         axis[1].axvline(x=x[-1], c="black", label="length")
         axis[1].set_xlim(0, x[-1])
-        axis[1].set_title("Bending Moment Diagram")
+        axis[1].set_title("Shear Force Diagram")
 
-        axis[2].plot(x, rot, label="Rotation")
+        axis[2].plot(x, -bmd, label= "Bending Moment")
         axis[2].axvline(x=0, c="black", label="length")
-        axis[2].axhline(y=0, c="black", label="Rotation Angle")
+        axis[2].axhline(y=0, c="black", label="BMD Magnitude")
         axis[2].axvline(x=x[-1], c="black", label="length")
         axis[2].set_xlim(0, x[-1])
-        axis[2].set_title("Rotation/Slope Diagram")
+        axis[2].set_title("Bending Moment Diagram")
 
-        axis[3].plot(x, deflection, label="Deflection (Major)")
+        axis[3].plot(x, rot, label="Rotation")
         axis[3].axvline(x=0, c="black", label="length")
-        axis[3].axhline(y=0, c="black", label="Deflection")
+        axis[3].axhline(y=0, c="black", label="Rotation Angle")
         axis[3].axvline(x=x[-1], c="black", label="length")
         axis[3].set_xlim(0, x[-1])
-        axis[3].set_title("Deflection Diagram (Major)")
+        axis[3].set_title("Rotation/Slope Diagram")
+
+        axis[4].plot(x, deflection, label="Deflection (Major)")
+        axis[4].axvline(x=0, c="black", label="length")
+        axis[4].axhline(y=0, c="black", label="Deflection")
+        axis[4].axvline(x=x[-1], c="black", label="length")
+        axis[4].set_xlim(0, x[-1])
+        axis[4].set_title("Deflection Diagram (Major)")
 
         plt.show()
 

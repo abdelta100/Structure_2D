@@ -214,22 +214,50 @@ class GeneralFrameElement2D:
 
     def calcInternals(self):
         # introduced chaining i guess
-        subElems, sfd= self.calcShearForceDiagram()
-        subElems, bmd=self.calcBendingMomentDiagram(subElems, sfd)
+        subElems, sfd = self.calcShearForceDiagram()
+        subElems, bmd = self.calcBendingMomentDiagram(subElems, sfd)
         subElems, rot = self.calcRotation(subElems, bmd)
         subElems, deflection = self.calcDeflectionMajor(subElems, rot)
+        subElems, afd = self.calcAxialForceDiagram(subElems)
 
-        return subElems, sfd, bmd, rot, deflection
+        return subElems, afd, sfd, bmd, rot, deflection
+
+    def calcAxialForceDiagram(self, subElems = None):
+        if subElems is None:
+            num_elems = 1000
+            resolution_distance = self.length / num_elems
+            subElems = np.array([i * self.length / num_elems for i in range(num_elems)])
+        else:
+            num_elems = subElems.shape[0]
+            resolution_distance = self.length / num_elems
+
+        i_Node_FEM, j_Node_FEM = self.elementEndForces()
+        i_node_Force = i_Node_FEM.fx
+        j_node_Force = j_Node_FEM.fx
+
+        afd = np.zeros(shape=subElems.shape)
+        for index, point in np.ndenumerate(subElems):
+            for load in self.loads:
+                if not (isinstance(load, MomentMember) or isinstance(load, PointLoadMember)):
+                    afd[index[0]:] += load.magnitudeAtPoint(point, axis="parallel") * resolution_distance
+
+        for load in self.loads:
+            if isinstance(load, PointLoadMember):
+                loadelempoint = int(load.location * num_elems/self.length)
+                # if loadelempoint == load.location:
+                afd[loadelempoint:] += load.magnitudeAtPoint(load.location, axis="parallel")
+
+        afd += i_node_Force
+        return subElems, afd
 
     def calcShearForceDiagram(self):
         num_elems = 1000
         resolution_distance = self.length / num_elems
-        # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
         i_Node_FEM, j_Node_FEM = self.elementEndForces()
         i_node_Force = i_Node_FEM.fy
         j_node_Force = j_Node_FEM.fy
         subElems = np.array([i * self.length / num_elems for i in range(num_elems)])
-        # transform i_node force to local coords
+
         sfd = np.zeros(shape=subElems.shape)
         for index, point in np.ndenumerate(subElems):
             for load in self.loads:
@@ -259,14 +287,7 @@ class GeneralFrameElement2D:
         i_Node_FEM, j_Node_FEM = self.elementEndForces()
         i_node_Moment = i_Node_FEM.mxy
         j_node_Moment = j_Node_FEM.mxy
-        # print(sfd)
-        # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
-        # print(np.array(self.i_Node.FEM))
-        # print(self.transformationMatrix[:3, :3])
-        # i_node_Force_transformed = np.matmul(np.array(self.i_Node.FEM.tolist()), self.transformationMatrix[:3, :3])
-        # print(i_node_Force_transformed[2])
 
-        # transform i_node force to local coords
         bmd = np.zeros(shape=subElems.shape)
         bmd = ctrapz(sfd, initial=0, dx=resolution_distance)
 
@@ -295,7 +316,6 @@ class GeneralFrameElement2D:
         i_node_Rot = i_Node_disp.rxy
         j_node_Rot = j_Node_disp.rxy
 
-        # rot = np.zeros(shape=subElems.shape)
         # turn bmd into curvature by dividing by EI
         rot = ctrapz(-bmd/(self.E * self.I), initial=0, dx=resolution_distance)
         # The following commen didnt hold because it may have been correcct in case of x y disp, but we are actually using rotation
@@ -316,7 +336,6 @@ class GeneralFrameElement2D:
         i_node_Dy = i_Node_disp.dy
         j_node_Dy = j_Node_disp.dy
 
-        # rot = np.zeros(shape=subElems.shape)
         deflection = ctrapz(rot, initial=0, dx=resolution_distance)
 
         deflection += i_node_Dy
