@@ -18,6 +18,16 @@ class ElementHelper:
         plt.axvline(x=x[-1], c="black", label="length")
         plt.xlim(0, x[-1])
         plt.show()
+
+    def plotBendingMomentDiagram(element: GeneralFrameElement2D):
+        x, bmd = element.calcBendingMomentDiagram()
+        # plotting negative bmd here for convention purposes
+        plt.plot(x, -bmd, label= "Bending Moment")
+        plt.axvline(x=0, c="black", label="length")
+        plt.axhline(y=0, c="black", label="Bending Moment Magnitude")
+        plt.axvline(x=x[-1], c="black", label="length")
+        plt.xlim(0, x[-1])
+        plt.show()
     @staticmethod
     def copyElementPropertiesSansNodes(element: GeneralFrameElement2D, clearLoads=True) -> GeneralFrameElement2D:
         newElem = copy.deepcopy(element)

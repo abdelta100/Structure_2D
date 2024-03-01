@@ -11,6 +11,7 @@ from .Load import StaticLoad, UniformDistributedLoad, PointLoadMember, MomentMem
 from .LoadInterfaces import MemberLoad
 from .Material import DefaultMaterial, Material
 from .Node import Node
+from scipy.integrate import cumulative_trapezoid as ctrapz
 
 
 # TODO Incorporate a 2D general frame element class here by renaming element class, and set element class  to inherit from it
@@ -229,20 +230,30 @@ class GeneralFrameElement2D:
         num_elems = 1000
         resolution_distance = self.length / num_elems
         subElems, sfd = self.calcShearForceDiagram()
-        print(sfd)
+
+        i_Node_FEM, j_Node_FEM = self.elementEndForces()
+        i_node_Moment = i_Node_FEM.mxy
+        j_node_Moment = j_Node_FEM.mxy
+        # print(sfd)
         # TODO issue here in using FEM. maybe in case where node is not fixed but has a free dof.
-        print(np.array(self.i_Node.FEM))
-        print(self.transformationMatrix[:3, :3])
-        i_node_Force_transformed = np.matmul(np.array(self.i_Node.FEM.tolist()), self.transformationMatrix[:3, :3])
-        print(i_node_Force_transformed[2])
+        # print(np.array(self.i_Node.FEM))
+        # print(self.transformationMatrix[:3, :3])
+        # i_node_Force_transformed = np.matmul(np.array(self.i_Node.FEM.tolist()), self.transformationMatrix[:3, :3])
+        # print(i_node_Force_transformed[2])
 
         # transform i_node force to local coords
-        bmd = [i_node_Force_transformed[2]]
-        for point, sf in zip(subElems, sfd):
-            bmd.append(bmd[-1])
-            bmd[-1] += sf * resolution_distance
+        bmd = np.zeros(shape=subElems.shape)
+        bmd = ctrapz(sfd, initial=0, dx=resolution_distance)
 
-        bmd.pop(-1)
+        for load in self.loads:
+            if isinstance(load, MomentMember):
+                loadelempoint = int(load.location * num_elems / self.length)
+                # if loadelempoint == load.location:
+                bmd[loadelempoint:] += load.magnitudeAtPoint(load.location, axis="perpendicular")
+
+        # deliberately adding the negative of bmd here because of diff between normal convention and my convention,
+        # in graphing will reverse it.
+        bmd = i_node_Moment - bmd
 
         return subElems, bmd
 
