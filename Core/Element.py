@@ -5,6 +5,7 @@ import numpy as np
 # from scipy.spatial.distance import euclidean
 from AuxillaryFunctions import distance as euclidean
 from MemberEndRelease import FixedEndMember, MemberEndRelease2D, PinnedEndMember
+from PrincipleDisplacement import PrincipleDisplacement2D
 from PrincipleForce import PrincipleForce2D
 from .CrossSection import DefaultRectangularCrossSection, CrossSection
 from .Load import StaticLoad, UniformDistributedLoad, PointLoadMember, MomentMember
@@ -125,6 +126,17 @@ class GeneralFrameElement2D:
         print(iNodeForce)
         print(jNodeForce)
         return iNodeForce, jNodeForce
+
+    def elementEndDisplacement(self):
+        iNodeDispGlobal = self.i_Node.disp
+        jNodeDispGlobal = self.j_Node.disp
+        transformedDisp = np.matmul(self.transformationMatrix.T,
+                                    np.array(iNodeDispGlobal.tolist() + jNodeDispGlobal.tolist()))
+
+        # TODO DEAL with the following in case members are free at some node dof
+        iNodeDisp = PrincipleDisplacement2D(transformedDisp[0], transformedDisp[1], transformedDisp[2])
+        jNodeDisp = PrincipleDisplacement2D(transformedDisp[0], transformedDisp[1], transformedDisp[2])
+        return iNodeDisp, jNodeDisp
 
     def addLoad(self, load: StaticLoad):
         # TODO add local and projection option control here?
@@ -262,13 +274,15 @@ class GeneralFrameElement2D:
         resolution_distance = self.length / num_elems
         subElems, bmd = self.calcBendingMomentDiagram()
         # TODO use end disp here
-        i_Node_disp, j_Node_disp = self.elementEndForces()
+        i_Node_disp, j_Node_disp = self.elementEndDisplacement()
         i_node_Rot = i_Node_disp.rxy
         j_node_Rot = j_Node_disp.rxy
 
         # rot = np.zeros(shape=subElems.shape)
-        rot = ctrapz(bmd, initial=0, dx=resolution_distance)
-
+        # turn bmd into curvature by dividing by EI
+        rot = ctrapz(-bmd/(self.E * self.I), initial=0, dx=resolution_distance)
+        # The following commen didnt hold because it may have been correcct in case of x y disp, but we are actually using rotation
+        #  prev comment: [this assumes initial defelction is node deflection whereas i only need beam deflection, maybe.]
         rot += i_node_Rot
         return subElems, rot
 
@@ -277,7 +291,7 @@ class GeneralFrameElement2D:
         resolution_distance = self.length / num_elems
         subElems, rot = self.calcRotation()
         # TODO use end disp here
-        i_Node_disp, j_Node_disp = self.elementEndForces()
+        i_Node_disp, j_Node_disp = self.elementEndDisplacement()
         i_node_Dy = i_Node_disp.dy
         j_node_Dy = j_Node_disp.dy
 

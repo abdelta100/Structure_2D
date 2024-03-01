@@ -30,7 +30,7 @@ class ElementHelper:
         plt.show()
 
     def plotRotationDiagram(element: GeneralFrameElement2D):
-        x, rot = element.calcBendingMomentDiagram()
+        x, rot = element.calcRotation()
         plt.plot(x, rot, label= "Rotation")
         plt.axvline(x=0, c="black", label="length")
         plt.axhline(y=0, c="black", label="Rotation Angle")
