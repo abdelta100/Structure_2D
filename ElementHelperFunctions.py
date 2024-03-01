@@ -46,6 +46,41 @@ class ElementHelper:
         plt.axvline(x=x[-1], c="black", label="length")
         plt.xlim(0, x[-1])
         plt.show()
+
+    def plotInternals(element: GeneralFrameElement2D):
+        x, sfd, bmd, rot, deflection = element.calcInternals()
+        figure, axis = plt.subplots(4, 1, constrained_layout=True)
+
+        axis[0].plot(x, sfd, label="Shear Force")
+        axis[0].axvline(x=0, c="black", label="length")
+        axis[0].axhline(y=0, c="black", label="Shear Magnitude")
+        axis[0].axvline(x=x[-1], c="black", label="length")
+        axis[0].set_xlim(0, x[-1])
+        axis[0].set_title("Shear Force Diagram")
+
+        axis[1].plot(x, -bmd, label= "Bending Moment")
+        axis[1].axvline(x=0, c="black", label="length")
+        axis[1].axhline(y=0, c="black", label="Shear Magnitude")
+        axis[1].axvline(x=x[-1], c="black", label="length")
+        axis[1].set_xlim(0, x[-1])
+        axis[1].set_title("Bending Moment Diagram")
+
+        axis[2].plot(x, rot, label="Rotation")
+        axis[2].axvline(x=0, c="black", label="length")
+        axis[2].axhline(y=0, c="black", label="Rotation Angle")
+        axis[2].axvline(x=x[-1], c="black", label="length")
+        axis[2].set_xlim(0, x[-1])
+        axis[2].set_title("Rotation/Slope Diagram")
+
+        axis[3].plot(x, deflection, label="Deflection (Major)")
+        axis[3].axvline(x=0, c="black", label="length")
+        axis[3].axhline(y=0, c="black", label="Deflection")
+        axis[3].axvline(x=x[-1], c="black", label="length")
+        axis[3].set_xlim(0, x[-1])
+        axis[3].set_title("Deflection Diagram (Major)")
+
+        plt.show()
+
     @staticmethod
     def copyElementPropertiesSansNodes(element: GeneralFrameElement2D, clearLoads=True) -> GeneralFrameElement2D:
         newElem = copy.deepcopy(element)

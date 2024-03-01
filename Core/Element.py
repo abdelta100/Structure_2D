@@ -212,6 +212,15 @@ class GeneralFrameElement2D:
     def showInternals(self):
         pass
 
+    def calcInternals(self):
+        # introduced chaining i guess
+        subElems, sfd= self.calcShearForceDiagram()
+        subElems, bmd=self.calcBendingMomentDiagram(subElems, sfd)
+        subElems, rot = self.calcRotation(subElems, bmd)
+        subElems, deflection = self.calcDeflectionMajor(subElems, rot)
+
+        return subElems, sfd, bmd, rot, deflection
+
     def calcShearForceDiagram(self):
         num_elems = 1000
         resolution_distance = self.length / num_elems
@@ -237,11 +246,15 @@ class GeneralFrameElement2D:
         sfd += i_node_Force
         return subElems, sfd
 
-    def calcBendingMomentDiagram(self):
+    def calcBendingMomentDiagram(self, subElems=None, sfd=None):
         # TODO add cosmetic opening and closing points on diagram arrays for clarity??
-        num_elems = 1000
-        resolution_distance = self.length / num_elems
-        subElems, sfd = self.calcShearForceDiagram()
+        if subElems is None or sfd is None:
+            num_elems = 1000
+            resolution_distance = self.length / num_elems
+            subElems, sfd = self.calcShearForceDiagram()
+        else:
+            num_elems = subElems.shape[0]
+            resolution_distance = self.length / num_elems
 
         i_Node_FEM, j_Node_FEM = self.elementEndForces()
         i_node_Moment = i_Node_FEM.mxy
@@ -269,10 +282,14 @@ class GeneralFrameElement2D:
 
         return subElems, bmd
 
-    def calcRotation(self):
-        num_elems = 1000
-        resolution_distance = self.length / num_elems
-        subElems, bmd = self.calcBendingMomentDiagram()
+    def calcRotation(self, subElems = None, bmd = None):
+        if subElems is None or bmd is None:
+            num_elems = 1000
+            resolution_distance = self.length / num_elems
+            subElems, sfd = self.calcBendingMomentDiagram()
+        else:
+            num_elems = subElems.shape[0]
+            resolution_distance = self.length / num_elems
         # TODO use end disp here
         i_Node_disp, j_Node_disp = self.elementEndDisplacement()
         i_node_Rot = i_Node_disp.rxy
@@ -286,10 +303,14 @@ class GeneralFrameElement2D:
         rot += i_node_Rot
         return subElems, rot
 
-    def calcDeflectionMajor(self):
-        num_elems = 1000
-        resolution_distance = self.length / num_elems
-        subElems, rot = self.calcRotation()
+    def calcDeflectionMajor(self, subElems=None, rot=None):
+        if subElems is None or rot is None:
+            num_elems = 1000
+            resolution_distance = self.length / num_elems
+            subElems, sfd = self.calcRotation()
+        else:
+            num_elems = subElems.shape[0]
+            resolution_distance = self.length / num_elems
         # TODO use end disp here
         i_Node_disp, j_Node_disp = self.elementEndDisplacement()
         i_node_Dy = i_Node_disp.dy
