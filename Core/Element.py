@@ -141,8 +141,7 @@ class GeneralFrameElement2D:
     def addLoad(self, load: StaticLoad):
         # TODO add local and projection option control here?
         if isinstance(load, MemberLoad):
-            load.beamLength = self.length
-            load.cleanInputs()
+            load.setBeam(self)
             self.loads.append(load)
         else:
             print("Warning: Tried to apply Non-Member load on element. Load ignored.")
