@@ -3,6 +3,7 @@ from abc import ABC
 from AuxillaryFunctions import *
 from PrincipleForce import PrincipleForce2D
 from .LoadInterfaces import *
+from math import sin, cos
 
 
 class Load(ABC):
@@ -11,7 +12,7 @@ class Load(ABC):
 
 
 class StaticLoad(ABC):
-    def __init__(self, magnitude: float = 0, local: bool = False):
+    def __init__(self, magnitude: float = 0):
         """
         A non instantiable abstract class that acts as base class for all static loading classes.
         :rtype: StaticLoad
@@ -24,7 +25,7 @@ class StaticLoad(ABC):
 
 
 class UniformDistributedLoad(StaticLoad, MemberLoad, ForceLoad):
-    def __init__(self, magnitude: float, start_location: float, end_location: float, angle: float = 270):
+    def __init__(self, magnitude: float, start_location: float, end_location: float, angle: float = 270, local=True, projected=False):
         """
         A uniformly distributed loading patter. Has constant magnitude over its distance of application.
         :rtype: UniformDistributedLoad
@@ -34,7 +35,10 @@ class UniformDistributedLoad(StaticLoad, MemberLoad, ForceLoad):
         :param angle: angle in degrees of load application, referenced globally +x axis is 0 degrees, CCW angle is measured positive. Local reference application to be implemented.
         """
         # TODO implement local reference load application and projected load application
-        super().__init__()
+        # super().__init__()
+        StaticLoad.__init__(self)
+        MemberLoad.__init__(self, angle=degree2rad(angle), local=local, projected=projected)
+        ForceLoad.__init__(self)
         self.loadClass = "Uniformly Distributed Load"
         self.magnitude = magnitude
         self.start = start_location
@@ -74,6 +78,7 @@ class UniformDistributedLoad(StaticLoad, MemberLoad, ForceLoad):
 
         return iNodeFer, jNodeFer
 
+
     def magnitudeAtPoint(self, point, axis: str = 'perpendicular'):
         # TODO returning magnitude for now, but issue with projections and loads at an angle etc
         if self.start <= point <= self.end:
@@ -91,6 +96,12 @@ class UniformDistributedLoad(StaticLoad, MemberLoad, ForceLoad):
         if self.end > self.beamLength: self.end = self.beamLength
         if self.end < 0: self.end = 0
         if self.start > self.end: self.end = self.start
+
+    def projectionHandler(self):
+        if self.isLocal:
+            print("Projected Loads do not work if loads are referenced locally to beam")
+        else:
+            self.magnitude = self.magnitude * sin(self.angle-self.beamAngle)
 
 
 class PointLoad(StaticLoad, NodeLoad, ForceLoad):
@@ -146,7 +157,7 @@ class PointLoad(StaticLoad, NodeLoad, ForceLoad):
 
 
 class PointLoadMember(PointLoad, MemberLoad, ForceLoad):
-    def __init__(self, magnitude: float, location: float, angle: float = 270):
+    def __init__(self, magnitude: float, location: float, angle: float = 270, local: bool = True, projected:bool = False):
         """
         A point Load object that is applied on a member. Different from PointLoad object which is built for application on a node.
         :rtype: PointLoadMember
@@ -154,7 +165,9 @@ class PointLoadMember(PointLoad, MemberLoad, ForceLoad):
         :param location: Location along member (from i-node to j-node) at which point load acts.
         :param angle: angle in degrees of load application, referenced globally +x axis is 0 degrees, CCW angle is measured positive. Local reference application to be implemented.
         """
-        super().__init__(magnitude)
+        PointLoad.__init__(self, magnitude)
+        MemberLoad.__init__(self, angle=degree2rad(angle), local=local, projected=projected)
+        ForceLoad.__init__(self)
         self.location = location
         # TODO jugar fix this
         self.beamLength = 10
@@ -203,10 +216,13 @@ class PointLoadMember(PointLoad, MemberLoad, ForceLoad):
         if self.location < 0: self.start = 0
         if self.location > self.beamLength: self.start = self.beamLength
 
+    def projectionHandler(self):
+        print("Point Loads cannot be projected")
+
 
 class VaryingDistributedLoad(StaticLoad, MemberLoad, ForceLoad):
     def __init__(self, start_magnitude: float, end_magnitude: float, start_location: float, end_location: float,
-                 angle: float = 270):
+                 angle: float = 270, local: bool = True, projected:bool = False):
         """
         Initializes a Uniformly Varying Load/Varying Distributed Load Object. A loading pattern where load varies constantly from one magnitude to another.
         :rtype: VaryingDistributedLoad
@@ -216,7 +232,9 @@ class VaryingDistributedLoad(StaticLoad, MemberLoad, ForceLoad):
         :param end_location: Distance along member (from i-node to j-node) at which the load ends.
         :param angle: angle in degrees of load application, referenced globally +x axis is 0 degrees, CCW angle is measured positive. Local reference application to be implemented.
         """
-        super().__init__()
+        StaticLoad.__init__(self)
+        MemberLoad.__init__(self, angle=degree2rad(angle), local=local, projected=projected)
+        ForceLoad.__init__(self)
         self.loadClass = "Varying Distributed Load"
         self.start_magnitude = start_magnitude
         self.end_magnitude = end_magnitude
@@ -328,6 +346,13 @@ class VaryingDistributedLoad(StaticLoad, MemberLoad, ForceLoad):
         if self.end < 0: self.end = 0
         if self.start > self.end: self.end = self.start
 
+    def projectionHandler(self):
+        if self.isLocal:
+            print("Projected Loads do not work if loads are referenced locally to beam")
+        else:
+            self.start_magnitude = self.start_magnitude * sin(self.angle-self.beamAngle)
+            self.end_magnitude = self.end_magnitude * sin(self.angle - self.beamAngle)
+
 
 class Moment(StaticLoad, NodeLoad, MomentLoad):
     def __init__(self, magnitude: float):
@@ -361,7 +386,9 @@ class MomentMember(StaticLoad, ConcentratedLoad, MomentLoad):
         :param magnitude: Magnitude of moment load. CCW is positive.
         :param location: Distance along member (from i-node to j-node) at which load is applied.
         """
-        super().__init__()
+        StaticLoad.__init__(self)
+        ConcentratedLoad.__init__(self,magnitude, angle=0, local=True, projected=False)
+        MomentLoad.__init__(self)
         self.magnitude = magnitude
         self.location = location
 
@@ -399,7 +426,7 @@ class MomentMember(StaticLoad, ConcentratedLoad, MomentLoad):
 
 class TrapezoidalDistributedLoad(VaryingDistributedLoad):
 
-    def __init__(self, location_list: list[float], magnitude_list: list[float], angle: float = 270):
+    def __init__(self, location_list: list[float], magnitude_list: list[float], angle: float = 270, local: bool = True, projected:bool = False):
         """
         A loading pattern that has many loading magnitudes specified at many locations. A single magnitude must be specified for each location. Both lists should have the same length.
         :rtype: TrapezoidalDistributedLoad
@@ -407,19 +434,20 @@ class TrapezoidalDistributedLoad(VaryingDistributedLoad):
         :param magnitude_list: A list of magnitudes of loading at each respective point specified in location_list. Can be negative, but will oposite to given angle.
         :param angle: angle in degrees of load application, referenced globally +x axis is 0 degrees, CCW angle is measured positive. Local reference application to be implemented.
         """
+        MemberLoad.__init__(self, angle=degree2rad(angle), local=local, projected=projected)
         self.loadClass = "Trapezoidal Distributed Load"
         self.angle = degree2rad(angle)
         self.VDLset: list[VaryingDistributedLoad] = []
         self.location_list = location_list
         self.magnitude_lst = magnitude_list
         self.inputIntegrityCheck(location_list, magnitude_list)
-        self.initializeVDLset(location_list, magnitude_list)
+        self.initializeVDLset(location_list, magnitude_list, local, projected)
 
-    def initializeVDLset(self, location_list, magnitude_list):
+    def initializeVDLset(self, location_list, magnitude_list, local, projected):
         for index in range(len(location_list) - 1):
             self.VDLset.append(
                 VaryingDistributedLoad(magnitude_list[index], magnitude_list[index + 1],
-                                       location_list[index], location_list[index + 1], angle=rad2degree(self.angle)))
+                                       location_list[index], location_list[index + 1], angle=rad2degree(self.angle), local=local, projected=projected))
 
     def inputIntegrityCheck(self, location_list, magnitude_list):
         if len(location_list) != len(magnitude_list):
