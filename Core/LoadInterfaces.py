@@ -45,6 +45,9 @@ class MemberLoad(ABC):
         if self.isProjected:
             self.projectionHandler()
 
+    def setTarget(self, target):
+        self.setBeam(target)
+
 
     def calcTotal(self) -> float:
         pass
