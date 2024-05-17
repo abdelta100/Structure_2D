@@ -114,11 +114,14 @@ class GeneralFrameElement2D:
     def elementEndForces(self):
         iNodeDispGlobal = self.i_Node.disp
         jNodeDispGlobal = self.j_Node.disp
-        transformedDisp = np.matmul(self.transformationMatrix.T,
+        d=np.array(iNodeDispGlobal.tolist() + jNodeDispGlobal.tolist())
+        t=self.transformationMatrix.T
+        transformedDisp = np.matmul(self.transformationMatrix,
                                     np.array(iNodeDispGlobal.tolist() + jNodeDispGlobal.tolist()))
         # minus added before np.array(FEM) instead of plus in line below, because my node1FEM, actually contains
         # Fixed End Actions instead of Fixed End Reactions.
         # TODO rename node1FEM to something more descriptive.
+        f=np.array(self.node1FEM.tolist() + self.node2FEM.tolist())
         endForces = np.matmul(self.localStiffnessMatrix, transformedDisp) - np.array(
             self.node1FEM.tolist() + self.node2FEM.tolist())
         iNodeForce = PrincipleForce2D(endForces[0], endForces[1], endForces[2])

@@ -51,3 +51,16 @@ There is a zero row, and non zero result, which intuitively should not yield a r
 terms that get introduced to floating point math instead of an actual zero.
 A solution could be to null any applied moment if it is detected that only truss elements connect to it,
 or add a support type that is fixed in rotation only at that node (from a book)?
+
+8 March 2024:
+Spring supports could be implemented by treating support as a free node, and adding support stiffness to respective
+entries on the stiffness matrix. The result will return a deflection but not a reaction. Could not treat it as a free
+node, that introduces some other problems i think.
+Will update.
+
+
+17 May 2024:
+Member Internal forces seem to be working. Just need to verify sign compatibility at reaction.
+Problem seemed to be that I was using localDisp = TransformationMatrix.T * GlobalDisp,
+the correct one that works is localDisp = TransformationMatrix * GlobalDisp .
+i.e remove the transpose. Check why this is later.
